@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unified Inbox — Ji Seo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #18181A;
+    --ink-muted: #5F5E5C;
+    --ink-faint: #A8A7A3;
+    --bg: #FAFAF7;
+    --surface: #F0EFE9;
+    --border: #E2E1DA;
+    --accent: #1A5CF6;
+    --accent-light: #EBF0FF;
+    --red: #D94530;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 3rem;
+    height: 56px;
+    background: rgba(250,250,247,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 13px;
+    color: var(--ink-muted);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    background: var(--accent);
+    z-index: 200;
+    transition: width 0.1s linear;
+  }
+
+  /* LAYOUT */
+  .page-wrap { padding-top: 56px; }
+
+  /* HERO */
+  .hero {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 100px 3rem 80px;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: rise 0.7s ease forwards 0.1s;
+  }
+  .hero-eyebrow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--ink-muted);
+    background: var(--bg);
+  }
+  .chip.accent {
+    background: var(--accent-light);
+    border-color: transparent;
+    color: var(--accent);
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 300;
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-desc {
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--ink-muted);
+    line-height: 1.75;
+    margin-bottom: 3rem;
+  }
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 680px;
+  }
+  .meta-item {
+    background: var(--bg);
+    padding: 1rem 1.25rem;
+  }
+  .meta-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* DIVIDER */
+  .divider {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 3rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* SECTION */
+  section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 3rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  section.visible { opacity: 1; transform: translateY(0); }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .section-num {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--ink-faint);
+    min-width: 24px;
+  }
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.25rem;
+    max-width: 600px;
+  }
+  .section-body {
+    font-size: 16px;
+    color: var(--ink-muted);
+    line-height: 1.8;
+    max-width: 600px;
+  }
+  .section-body p + p { margin-top: 1rem; }
+
+  /* IMAGE PLACEHOLDER */
+  .img-placeholder {
+    width: 100%;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--ink-faint);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-top: 2.5rem;
+  }
+  .img-placeholder:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+  .img-placeholder svg { opacity: 0.5; }
+  .img-placeholder:hover svg { opacity: 1; }
+  .img-placeholder.tall { height: 360px; }
+  .img-placeholder.short { height: 220px; }
+
+  /* TWO-COL */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2.5rem;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* CALLOUT */
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    background: var(--accent-light);
+    border-radius: 0 10px 10px 0;
+    margin: 2rem 0;
+  }
+  .callout p {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.65;
+  }
+
+  /* RESEARCH CARDS */
+  .research-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 2.5rem;
+  }
+  .research-card {
+    background: var(--bg);
+    padding: 1.5rem;
+  }
+  .research-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .research-icon svg { color: var(--accent); }
+  .research-card h4 {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .research-card p {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    line-height: 1.65;
+  }
+
+  /* TIMELINE / APPROACH */
+  .approach-steps {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .approach-step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 1.25rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .approach-step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: var(--ink-faint);
+    padding-top: 2px;
+  }
+  .step-content h4 {
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .step-content p {
+    font-size: 14px;
+    color: var(--ink-muted);
+    line-height: 1.65;
+  }
+
+  /* OUTCOME */
+  .outcome-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 2.5rem;
+  }
+  .outcome-card {
+    background: var(--bg);
+    padding: 1.5rem 1.25rem;
+  }
+  .outcome-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-faint);
+    margin-bottom: 0.5rem;
+  }
+  .outcome-value {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .outcome-value.green { color: #2A7A40; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem;
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 13px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ANIMATION */
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav>
+  <a href="../index.html" class="nav-logo">Ji Seo — Product Designer</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">← Work</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+    <li><a href="../assets/Ji_Seo_resume_2026.pdf" download>Résumé ↓</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="chip accent">Shipped</span>
+      <span class="chip">Wearables · Communications</span>
+      <span class="chip">Meta</span>
+    </div>
+    <h1>Breaking Apart<br>the <em>Unified Inbox</em></h1>
+    <p class="hero-desc">
+      A legacy design had survived long past its technical constraints.
+      I proposed and drove the structural separation of Meta's wearable messaging experience
+      into distinct, purposeful apps — and sold it across engineering and leadership.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <div class="meta-label">Role</div>
+        <div class="meta-value">Senior Designer</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Team</div>
+        <div class="meta-value">Comms / Messaging</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Collaborators</div>
+        <div class="meta-value">PM + Researcher</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Status</div>
+        <div class="meta-value">✦ Shipped</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CONTEXT -->
+  <section id="context">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-label">Context</span>
+    </div>
+    <h2 class="section-title">A unified inbox built for constraints that no longer existed</h2>
+    <div class="section-body">
+      <p>When I joined the team, the wearables messaging experience lived in a single unified inbox — one view that collapsed WhatsApp, Messenger, and other native messaging apps into a common thread list with no differentiation.</p>
+      <p>The original rationale was technical: early devices made separate navigation difficult, so a unified view was the pragmatic solution. But by the time I arrived, those constraints had long been resolved. What remained was a design that had outlived its reason for existing — kept alive by institutional familiarity and justifications that had built up around it over time.</p>
+    </div>
+
+    <div class="img-placeholder tall" title="Add context / before screenshot here">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Add before-state screenshot — unified inbox view</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-label">Problem</span>
+    </div>
+    <h2 class="section-title">People think of each messaging app as a distinct entity — with its own purpose and social norms</h2>
+    <div class="section-body">
+      <p>People today regularly use 5+ messaging apps. Each one carries a distinct social context: WhatsApp for family and close friends, Messenger for a different social graph, each with its own norms around what gets sent, to whom, and when.</p>
+      <p>Collapsing those into a single inbox simplified navigation on the surface, but it created a higher cognitive burden. Users weren't just navigating messages — they were constantly re-orienting to which context they were in.</p>
+    </div>
+
+    <div class="callout">
+      <p>"Navigation may be easier but cognitive load is higher. People actually think of each app as a separate entity with separate and different use cases."</p>
+    </div>
+
+    <div class="section-body">
+      <p>Without a proper notification center, the unified inbox had also been serving as a workaround for awareness — a place to surface incoming messages from multiple platforms. But awareness and unified messaging are different needs. The design had conflated them.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- RESEARCH -->
+  <section id="research">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-label">Research</span>
+    </div>
+    <h2 class="section-title">What participants actually told us</h2>
+    <div class="section-body">
+      <p>Working closely with our researcher, we conducted user studies alongside a literature review of existing findings. The data consistently validated the hypothesis: separation wasn't just acceptable — it was expected.</p>
+    </div>
+
+    <div class="research-grid">
+      <div class="research-card">
+        <div class="research-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h4>Separate by social purpose</h4>
+        <p>Participants use each platform for different purposes. Consolidation was wanted for <em>awareness</em> — not unified messaging across apps.</p>
+      </div>
+      <div class="research-card">
+        <div class="research-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h4>Mixed threads create confusion</h4>
+        <p>Combining conversations from different platforms into one thread created a disjointed narrative — making it harder, not easier, to follow a conversation.</p>
+      </div>
+      <div class="research-card">
+        <div class="research-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h4>Tabs implied separation</h4>
+        <p>When shown concepts with platform tabs, all participants perceived the accounts as separate — even when they shared a consolidated Meta view.</p>
+      </div>
+      <div class="research-card">
+        <div class="research-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4>No privacy concerns with separation</h4>
+        <p>Because separation was the expected mental model, no participants flagged privacy concerns — they already assumed accounts were distinct.</p>
+      </div>
+    </div>
+
+    <div class="img-placeholder short" style="margin-top: 2rem;" title="Add research artifact or quote wall">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Add research artifact, affinity map, or key quote visual</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- APPROACH -->
+  <section id="approach">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-label">My Approach</span>
+    </div>
+    <h2 class="section-title">Selling a structural change that wasn't on anyone's roadmap</h2>
+    <div class="section-body">
+      <p>Breaking apart the unified inbox required buy-in across design, product, and engineering — and none of it was easy. This wasn't a feature request; it was a structural proposal that touched every platform team.</p>
+    </div>
+
+    <div class="approach-steps">
+      <div class="approach-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Made the legacy visible</h4>
+          <p>I reframed the unified inbox not as an intentional design decision, but as a technical workaround that had outlived its context — shifting the conversation from "why change" to "why not."</p>
+        </div>
+      </div>
+      <div class="approach-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Grounded every claim in research</h4>
+          <p>Rather than advocating from intuition, I brought user data to every conversation. Participant findings plus a literature review created a strong, evidence-based case for separation.</p>
+        </div>
+      </div>
+      <div class="approach-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Built design proposals to make it concrete</h4>
+          <p>I developed tangible proposals showing how separated apps could work in practice — giving engineering teams something specific to react to rather than a conceptual argument.</p>
+        </div>
+      </div>
+      <div class="approach-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Paired separation with a notification center</h4>
+          <p>One key objection was awareness: the unified inbox helped people see all messages in one place. I proposed a dedicated notification center as the answer — consolidation for awareness, separation for action.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top: 2.5rem;">
+      <div class="img-placeholder tall" title="Add design proposal / proposal screens">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Add design proposals</span>
+      </div>
+      <div class="img-placeholder tall" title="Add notification center design">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Add notification center design</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SOLUTION -->
+  <section id="solution">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-label">Solution</span>
+    </div>
+    <h2 class="section-title">Distinct apps. One notification center. Clarity at every layer.</h2>
+    <div class="section-body">
+      <p>The resulting design separated WhatsApp, Messenger, and other native apps into their own distinct experiences — each with its own identity, purpose, and navigation on the device.</p>
+      <p>A new notification center addressed the awareness need that the unified inbox had been fulfilling as a side effect. Users could now see incoming messages across platforms in one place, without having all their conversations collapsed into a single context.</p>
+      <p>The recommendation also surfaced a path forward for consolidation without combination — stacking messages from one person across platforms while preserving app-level icons and context, so users could orient without cognitive overhead.</p>
+    </div>
+
+    <div class="img-placeholder tall" style="margin-top: 2.5rem;" title="Add final design / shipped state">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Add final shipped design — separated app views + notification center</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- OUTCOME -->
+  <section id="outcome">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <span class="section-label">Outcome</span>
+    </div>
+    <h2 class="section-title">Shipped. And the foundation of my plan of record.</h2>
+    <div class="section-body">
+      <p>The proposal gained cross-functional alignment, became my plan of record, and shipped. A structural change to the messaging architecture — driven by a new designer through research and design — made it into the product.</p>
+    </div>
+
+    <div class="outcome-row">
+      <div class="outcome-card">
+        <div class="outcome-tag">Impact</div>
+        <div class="outcome-value green">Shipped</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-tag">Scope</div>
+        <div class="outcome-value">Platform-level restructure</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-tag">Influence</div>
+        <div class="outcome-value">Became plan of record</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-tag">New capability</div>
+        <div class="outcome-value">Notification center</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2.5rem;">
+      <p>"The hardest design challenge isn't the interface — it's convincing an organization to change course. This project required making the invisible visible: showing that a design which had accumulated years of justification was still just a workaround."</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+  <footer>
+    Ji Seo · Senior Product Designer · <a href="../index.html" style="color: inherit;">Back to portfolio</a> · <a href="mailto:jiseo@gmail.com" style="color: inherit;">jiseo@gmail.com</a>
+  </footer>
+
+</div>
+
+<script>
+  // Scroll progress
+  const bar = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    bar.style.width = Math.min(pct, 100) + '%';
+  });
+
+  // Intersection observer for section reveals
+  const sections = document.querySelectorAll('section');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.08 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
