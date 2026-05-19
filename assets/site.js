@@ -38,6 +38,20 @@
     if (target && target === here) a.setAttribute('aria-current', 'page');
   });
 
+  const videoIO = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.play();
+        } else {
+          entry.target.pause();
+        }
+      }
+    },
+    { threshold: 0.5 }
+  );
+  document.querySelectorAll('video[data-scroll-play]').forEach((v) => videoIO.observe(v));
+
   document.querySelectorAll('.case-image img').forEach((img) => {
     const handleMissing = () => {
       const fig = img.closest('.case-image');
@@ -45,7 +59,7 @@
       fig.classList.add('is-missing');
       const label = document.createElement('div');
       label.className = 'missing-label';
-      label.textContent = img.alt ? `${img.alt} — image coming soon` : 'Image coming soon';
+      label.textContent = img.alt ? `${img.alt} (image coming soon)` : 'Image coming soon';
       img.replaceWith(label);
     };
     if (img.complete && img.naturalWidth === 0) handleMissing();

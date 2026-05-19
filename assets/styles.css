@@ -1,5 +1,5 @@
 /* =========================================================
-   Ji Seo — Portfolio 2026
+   Ji Seo, Portfolio 2026
    Editorial minimal · warm cream · serif headlines
    ========================================================= */
 
@@ -18,8 +18,8 @@
   --bg: #FAFAF7;
   --surface: #F0EFE9;
   --border: #E2E1DA;
-  --accent: #1A5CF6;
-  --accent-light: #EBF0FF;
+  --accent: #1A7A45;
+  --accent-light: #E3F4EC;
   --red: #D94530;
   --green: #2A7A40;
 
@@ -80,7 +80,7 @@
   --sans: 'IBM Plex Sans', system-ui, sans-serif;
 }
 
-html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--sans);
@@ -143,7 +143,6 @@ body {
 
 /* ============ FOOTER ============ */
 .site-footer {
-  border-top: 1px solid var(--border);
   margin-top: var(--space-6);
   padding: var(--space-5) 32px var(--space-4);
 }
@@ -178,7 +177,6 @@ body {
 .site-footer .copy {
   margin-top: var(--space-4);
   padding-top: var(--space-3);
-  border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   font-size: 12px;
@@ -310,7 +308,6 @@ body {
   grid-template-columns: 1fr auto;
   align-items: baseline;
   gap: 24px;
-  border-top: 1px solid var(--border);
   padding-top: var(--space-4);
   padding-bottom: var(--space-3);
 }
@@ -344,9 +341,9 @@ body {
 .work-row {
   position: relative;
   display: grid;
-  grid-template-columns: 56px 2.2fr 1.6fr 1fr 24px;
+  grid-template-columns: 56px 2.2fr 2fr 24px;
   align-items: center;
-  gap: 24px;
+  gap: 48px;
   padding: 24px 8px;
   border-bottom: 1px solid var(--border);
   text-decoration: none;
@@ -360,22 +357,26 @@ body {
   font-style: italic;
   color: var(--ink-faint);
 }
+.work-row .title-block {
+  display: flex;
+  flex-direction: column;
+}
 .work-row .title-block .title {
   font-family: var(--serif);
   font-weight: 400;
   font-size: clamp(1.4rem, 2.4vw, 1.9rem);
   letter-spacing: -0.015em;
   line-height: 1.1;
-  display: inline;
+  display: block;
 }
-.work-row .title-block .title em { font-style: italic; }
+.work-row .title-block .title em { font-style: normal; }
 .work-row .title-block .sub {
   font-size: 13px;
   color: var(--ink-muted);
   margin-top: 6px;
 }
 .work-row .meta { font-size: 13px; color: var(--ink-muted); }
-.work-row .year { font-size: 13px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.work-row .meta .year { font-size: 13px; color: var(--ink-faint); font-variant-numeric: tabular-nums; margin-left: 12px; }
 .work-row .arrow {
   width: 24px; height: 24px;
   border-radius: 50%;
@@ -410,11 +411,11 @@ body {
 
 @media (max-width: 800px) {
   .work-row { grid-template-columns: 32px 1fr 24px; }
-  .work-row .meta, .work-row .year { display: none; }
+  .work-row .meta { display: none; }
   .work-row .preview { display: none; }
 }
 
-/* Card style — image grid */
+/* Card style: image grid */
 [data-cards="image"] .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; border: none; }
 [data-cards="image"] .work-row {
   display: block;
@@ -436,14 +437,13 @@ body {
 [data-cards="image"] .work-row .card-body { padding: 20px 22px 24px; background: var(--bg); }
 [data-cards="image"] .work-row .idx { display: block; margin-bottom: 8px; }
 [data-cards="image"] .work-row .meta,
-[data-cards="image"] .work-row .year,
 [data-cards="image"] .work-row .arrow,
 [data-cards="image"] .work-row .preview { display: none; }
 @media (max-width: 720px) {
   [data-cards="image"] .work-list { grid-template-columns: 1fr; }
 }
 
-/* Card style — numbered, oversized */
+/* Card style: numbered, oversized */
 [data-cards="numbered"] .work-row {
   grid-template-columns: 120px 1fr 24px;
   padding: 36px 8px;
@@ -454,8 +454,7 @@ body {
   color: var(--ink-faint);
   line-height: 1;
 }
-[data-cards="numbered"] .work-row .meta,
-[data-cards="numbered"] .work-row .year { display: none; }
+[data-cards="numbered"] .work-row .meta { display: none; }
 [data-cards="numbered"] .work-row .title-block .title { font-size: clamp(1.8rem, 3vw, 2.4rem); }
 
 /* covers (set per card via inline style url) */
@@ -488,7 +487,7 @@ body {
   margin-bottom: var(--space-3);
   text-wrap: balance;
 }
-.case-hero h1 em { font-style: italic; color: var(--accent); }
+.case-hero h1 em { font-style: normal; color: var(--accent); }
 .case-hero .lede {
   max-width: 580px;
   font-size: 18px;
@@ -551,7 +550,7 @@ body {
   margin-bottom: var(--space-3);
   max-width: 640px;
 }
-.case-section h2 em { font-style: italic; }
+.case-section h2 em { font-style: normal; }
 .case-section .body {
   font-size: 16px;
   color: var(--ink-muted);
@@ -563,7 +562,7 @@ body {
 .case-section .body strong { color: var(--ink); font-weight: 500; }
 
 .case-image {
-  margin-top: var(--space-3);
+  margin: var(--space-3) 0 0;
   width: 100%;
   border-radius: var(--radius);
   overflow: hidden;

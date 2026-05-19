@@ -6,9 +6,9 @@ Static HTML/CSS portfolio site. No build step, no dependencies.
 
 The site uses relative paths (`assets/styles.css`, `assets/site.js`, etc.) so it works two ways:
 
-**Option 1 — Double-click `index.html`** in Finder. Loads in your browser, no setup. Some browsers occasionally cache fonts/CSS aggressively for `file://` URLs; if that bites you, use option 2.
+**Option 1: Double-click `index.html`** in Finder. Loads in your browser, no setup. Some browsers occasionally cache fonts/CSS aggressively for `file://` URLs; if that bites you, use option 2.
 
-**Option 2 — Run a tiny local server** (recommended while editing):
+**Option 2: Run a tiny local server** (recommended while editing):
 
 ```bash
 cd ~/Desktop/portfolio
@@ -21,13 +21,13 @@ Then open <http://localhost:8000/> in your browser. Python ships with macOS, no 
 
 ```
 portfolio/
-├── index.html                          Home — hero + work index + about preview
+├── index.html                          Home: hero + work index + about preview
 ├── about.html                          About page
 ├── contact.html                        Contact page
 ├── assets/
 │   ├── styles.css                      Shared site styles
 │   ├── site.js                         Scroll reveals, progress bar, nav highlight, missing-image fallback
-│   └── ji-seo-resume.pdf               (drop your résumé here — see TODOs)
+│   └── ji-seo-resume.pdf               (drop your résumé here; see TODOs)
 ├── images/                             Case study images (empty for now)
 └── work/
     ├── ai-native-communications.html   Shared design system + embedded interactive prototype (~7MB)
@@ -52,12 +52,12 @@ portfolio/
 
 ## Notes on individual case studies
 
-- `work/ai-native-communications.html` uses the shared design system. It also embeds an **interactive prototype** as a ~7MB base64 blob — click "View prototype →" in section 06 to open it in an overlay (Esc to close). If you ever need to regenerate the file structure, the base64 blob is the long string assigned to `_protoB64` near the end of the file; don't accidentally break that line.
+- `work/ai-native-communications.html` uses the shared design system. It also embeds an **interactive prototype** as a ~7MB base64 blob; click "View prototype →" in section 06 to open it in an overlay (Esc to close). If you ever need to regenerate the file structure, the base64 blob is the long string assigned to `_protoB64` near the end of the file; don't accidentally break that line.
 - `work/unified-inbox.html` uses its own inline CSS but visually matches the rest of the site. Its nav header links back to portfolio. Image placeholders inside use the file's own dashed-border style (different from the JS-based fallback used by the other case studies). You can port this to the shared CSS later if you want full visual consistency.
 
 ## Theme toggles
 
-The CSS supports several variants you can switch by adding a `data-*` attribute to the `<html>` or `<body>` tag — e.g. `<body data-palette="ink" data-fonts="instrument" data-density="airy">`.
+The CSS supports several variants you can switch by adding a `data-*` attribute to the `<html>` or `<body>` tag, e.g. `<body data-palette="ink" data-fonts="instrument" data-density="airy">`.
 
 | Attribute       | Values                                              |
 | --------------- | --------------------------------------------------- |
@@ -71,8 +71,8 @@ The CSS supports several variants you can switch by adding a `data-*` attribute 
 
 The simplest no-fuss options for a static site like this:
 
-- **Netlify Drop** — drag the `portfolio/` folder onto <https://app.netlify.com/drop>. Free.
-- **Vercel** — `vercel` from the folder, takes <1 min. Free.
-- **GitHub Pages** — push to a `username.github.io` repo. Free.
+- **Netlify Drop.** Drag the `portfolio/` folder onto <https://app.netlify.com/drop>. Free.
+- **Vercel.** Run `vercel` from the folder, takes <1 min. Free.
+- **GitHub Pages.** Push to a `username.github.io` repo. Free.
 
 All three give you a real URL + free HTTPS.

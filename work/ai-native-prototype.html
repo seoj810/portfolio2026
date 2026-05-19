@@ -1,0 +1,1803 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Native Communication Case Study</title>
+  <script src="../assets/gate.js"></script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500&display=swap");
+
+    :root {
+      --bg: #0b0c0f;
+      --text: #f6f8fb;
+      --muted: #a7b0bc;
+      --accent: #D9FF30;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(1000px 620px at 8% -12%, rgba(150, 170, 220, 0.08), transparent 62%),
+        radial-gradient(900px 560px at 92% -5%, rgba(120, 150, 220, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      overflow: hidden;
+    }
+
+    .deck {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 12px;
+      padding: 18px 22px 14px;
+      position: relative;
+    }
+
+    .watermark {
+      position: absolute;
+      left: 32px;
+      bottom: 30px;
+      color: #8c93a0;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      user-select: none;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .corner-meta-left {
+      position: absolute;
+      top: 28px;
+      color: #8c93a0;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      user-select: none;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .corner-meta-left {
+      left: 32px;
+    }
+
+    .hide-corner-meta .corner-meta-left {
+      display: none;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr);
+      gap: 112px;
+      min-height: 0;
+      padding: 108px 106px;
+      border-radius: 0;
+      position: relative;
+      overflow: hidden;
+      background: transparent;
+      box-shadow: none;
+      align-items: center;
+    }
+
+    .slide.active {
+      display: grid;
+      animation: slideFade 280ms ease-out;
+    }
+
+    @keyframes slideFade {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .left,
+    .right {
+      min-height: 0;
+      overflow: auto;
+      color: var(--text);
+    }
+
+    .left {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .title-slide {
+      grid-template-columns: 1fr;
+    }
+
+    .demo-slide {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      padding: 0;
+    }
+
+    .text-only-slide {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+
+    .learnings-slide .copy {
+      max-width: 62ch;
+    }
+
+    .preface-slide {
+      grid-template-columns: 1fr;
+      background: #ffffff;
+      color: #111111;
+      align-items: center;
+    }
+
+    .preface-slide .left {
+      max-width: 76ch;
+    }
+
+    .preface-slide h2 {
+      color: #111111;
+    }
+
+    .preface-slide .copy {
+      color: #2a2a2a;
+      max-width: 72ch;
+    }
+
+    .preface-kicker {
+      margin: 0 0 10px;
+      color: #4a4a4a;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .title-slide .left,
+    .text-only-slide .left {
+      grid-column: 1 / 2;
+    }
+
+    .title-slide .left {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .title-slide h1 {
+      margin-bottom: 4px;
+      white-space: normal;
+      text-wrap: balance;
+      font-size: clamp(38px, 4.6vw, 58px);
+    }
+
+    .title-slide .subtitle {
+      max-width: 62ch;
+      font-size: clamp(16px, 1.45vw, 20px);
+      line-height: 1.35;
+    }
+
+    .right {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .demo-embed {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .demo-frame {
+      width: 111.111%;
+      height: 111.111%;
+      border: 0;
+      border-radius: 0;
+      background: #0b0c0f;
+      display: block;
+      transform: scale(0.9);
+      transform-origin: center center;
+    }
+
+    h1,
+    h2 {
+      margin: 0 0 16px;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 500;
+      text-align: left;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(44px, 5.5vw, 66px);
+      text-wrap: balance;
+    }
+
+    h2 {
+      font-size: clamp(31px, 3.4vw, 46px);
+      text-wrap: balance;
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: clamp(18px, 1.45vw, 21px);
+      line-height: 1.36;
+      max-width: 60ch;
+      text-align: left;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(16px, 1.25vw, 19px);
+      line-height: 1.33;
+      max-width: 46ch;
+      text-wrap: pretty;
+      text-align: left;
+    }
+
+    .copy + .copy {
+      margin-top: 10px;
+    }
+
+    .list {
+      margin: 14px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+      font-size: clamp(16px, 1.15vw, 18px);
+      line-height: 1.33;
+      max-width: 46ch;
+      text-align: left;
+    }
+
+    .list li + li {
+      margin-top: 8px;
+    }
+
+    .placeholder-card {
+      padding: 0;
+      color: var(--muted);
+      min-height: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 6px;
+      background: transparent;
+      border-radius: 0;
+      border: none;
+    }
+
+    .placeholder-card::after {
+      content: "";
+      width: 100%;
+      height: 2px;
+      border-radius: 0;
+      background: linear-gradient(90deg, rgba(159, 196, 255, 0.65), rgba(159, 196, 255, 0.06));
+      margin-top: 6px;
+    }
+
+    .placeholder-title {
+      margin: 0 0 6px;
+      color: var(--text);
+      font-weight: 620;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.92;
+    }
+
+    .placeholder-text {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.32;
+      max-width: 44ch;
+      color: var(--muted);
+    }
+
+    .slide-image {
+      width: 70%;
+      max-width: 560px;
+      height: auto;
+      display: block;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .slide-image-agent {
+      width: 90%;
+      max-width: 560px;
+    }
+
+    .slide-image-agent-atoa {
+      width: 80%;
+    }
+
+    .slide-image-personal {
+      width: 56%;
+    }
+
+    .slide-image-full-delegation {
+      width: 100%;
+      max-width: 560px;
+      object-fit: contain;
+    }
+
+    .social-card {
+      width: 100%;
+      max-width: 440px;
+      min-height: 420px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(28, 31, 36, 0.98), rgba(20, 23, 28, 0.98));
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: flex-start;
+    }
+
+    .social-card-head {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding-bottom: 10px;
+    }
+
+    .social-card-title {
+      margin: 0;
+      color: var(--text);
+      font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      letter-spacing: 0.01em;
+    }
+
+    .social-card-sub {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .social-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .social-section-title {
+      margin: 0;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #c8d0db;
+    }
+
+    .social-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .social-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #d4dbe4;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .social-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+
+    .social-dot.share {
+      background: var(--accent);
+      box-shadow: 0 0 0 2px rgba(217, 255, 48, 0.15);
+    }
+
+    .social-dot.block {
+      background: #8792a0;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 0;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 30px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 0;
+      border-radius: 0;
+      font-size: 16px;
+      line-height: 1;
+      font-weight: 300;
+      cursor: pointer;
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.8;
+    }
+
+    button:disabled {
+      opacity: 0.3;
+      cursor: default;
+      transform: none;
+    }
+
+    .slide-counter {
+      color: var(--muted);
+      font-size: 12px;
+      min-width: 84px;
+      text-align: center;
+      letter-spacing: 0.02em;
+      text-transform: none;
+    }
+
+    details {
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      transition: opacity 160ms ease;
+    }
+
+    details + details {
+      margin-top: 10px;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 11px 0;
+      font-size: 18px;
+      font-weight: 400;
+      color: #f4f6f8;
+      border-bottom: 1px solid rgba(129, 142, 160, 0.24);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
+    }
+
+    summary::after {
+      content: "+";
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1;
+      transition: transform 150ms ease;
+    }
+
+    details[open] summary::after {
+      content: "-";
+      transform: rotate(180deg);
+    }
+
+    details[open] summary {
+      border-bottom-color: rgba(129, 142, 160, 0.48);
+    }
+
+    .level-body {
+      padding: 10px 0 12px;
+    }
+
+    .level-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(15px, 1.1vw, 17px);
+      line-height: 1.32;
+      text-align: left;
+    }
+
+    .level-body p + p {
+      margin-top: 8px;
+    }
+
+    .example {
+      color: var(--accent);
+      margin-top: 10px;
+      padding-left: 10px;
+      border-left: 2px solid rgba(167, 176, 188, 0.6);
+      opacity: 0.95;
+    }
+
+    .level-accent {
+      color: #f4f6f8;
+    }
+
+    details[open] .level-accent {
+      color: var(--accent);
+    }
+
+    .network-visual {
+      width: 100%;
+      max-width: 520px;
+      min-height: 360px;
+      background: transparent;
+      border: none;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .network-visual svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    @media (max-width: 1080px) {
+      .deck {
+        padding: 14px;
+      }
+
+      .slide {
+        grid-template-columns: 1fr;
+        padding: 120px 80px;
+      }
+
+      .left,
+      .right {
+        max-height: none;
+      }
+
+      .right {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <div class="corner-meta-left">Ji Seo • Product Design</div>
+
+    <section class="slide title-slide">
+      <div class="left">
+        <h1>AI-First Communication</h1>
+        <p class="subtitle">Technology is shifting. We are moving away from just "apps" and toward "agents." UX must shift from navigating interfaces to declaring intent. In the world of communication, this means the technology doesn't just send the message - it understands what you are trying to get done.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="left">
+        <h2>The 4 Levels of AI Agents</h2>
+        <p class="copy">There are four levels of agent participation.</p>
+      </div>
+      <div class="right">
+        <details>
+          <summary>Level 1: Direct Connection (Today)</summary>
+          <div class="level-body">
+            <p>The AI is just a voice-activated dialer.</p>
+            <p class="example">Example: You say, "Call Mom on WhatsApp," and it immediately opens the line. It does not screen or help; it just connects.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Level 2: Background Assist</summary>
+          <div class="level-body">
+            <p>The AI stays in the background of your conversation to help.</p>
+            <p class="example">Example: On a group call planning a trip, it listens, checks calendars, and shows best dates in real time.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Level 3: Negotiated Handoff</summary>
+          <div class="level-body">
+            <p>The AI handles the boring setup and handoff work.</p>
+            <p class="example">Example: It calls the school, waits on hold, explains the issue, and pings you when the right teacher is on the line.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="level-accent">Level 4: Full Delegation</span></summary>
+          <div class="level-body">
+            <p>The AI handles the entire task from start to finish.</p>
+            <p class="example">Example: "Get my flight refunded." It calls the airline, resolves it, and notifies you when the money is back.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="left">
+        <p class="eyebrow">Level 4</p>
+        <h2>Full Delegation</h2>
+        <p class="copy">Our focus is on Full Delegation.</p>
+        <p class="copy">Communication is really about relationships - talking to your mom, your friends, or your community.</p>
+        <p class="copy">We want to automate the logistics so you can focus on the people.</p>
+      </div>
+      <div class="right">
+        <div class="network-visual" aria-label="Network illustration of person connected to mom, friend, group, and community">
+          <img class="slide-image slide-image-agent slide-image-full-delegation" src="../images/ai-comms-network.png" alt="Center person connected to friend, mom, group, and community" />
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="left">
+        <h2>Personal Agent</h2>
+        <p class="copy">Imagine a world where everyone had their own personal AI agent?</p>
+        <p class="copy">These agents could make small decisions and handle the heavy lifting of coordination.</p>
+      </div>
+      <div class="right">
+        <img class="slide-image slide-image-agent slide-image-personal" src="../images/ai-comms-personal-agent.png" alt="Person and personal agent visual" />
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="left">
+        <h2>Agent-to-Agent</h2>
+        <p class="copy">In this future, your AI talks directly to your friend's AI.</p>
+        <p class="copy">Instead of a messy group chat, a web of digital assistants works behind the scenes.</p>
+        <p class="copy">They solve problems and schedule events instantly.</p>
+      </div>
+      <div class="right">
+        <img class="slide-image slide-image-agent slide-image-agent-atoa" src="../images/ai-comms-agent-to-agent.png" alt="Two connected agent avatars" />
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="left">
+        <h2>The Social Profile</h2>
+        <p class="copy">For this to work, there must be trust.</p>
+        <p class="copy">Each user controls a digital contract (<span class="level-accent">SOCIAL.md</span>) that tells their AI what it can share, what stays private, and which tools other agents can access.</p>
+        <p class="copy">Clear rules make delegation safe.</p>
+      </div>
+      <div class="right">
+        <div class="social-card" aria-label="social.md preference card">
+          <div class="social-card-head">
+            <p class="social-card-title">social.md</p>
+            <p class="social-card-sub">Personal sharing preferences</p>
+          </div>
+
+          <div class="social-section">
+            <p class="social-section-title">Can Share</p>
+            <div class="social-list">
+              <div class="social-row"><span class="social-dot share"></span><span>Availability windows</span></div>
+              <div class="social-row"><span class="social-dot share"></span><span>Preferred meeting locations</span></div>
+              <div class="social-row"><span class="social-dot share"></span><span>Dietary preferences</span></div>
+            </div>
+          </div>
+
+          <div class="social-section">
+            <p class="social-section-title">Cannot Share</p>
+            <div class="social-list">
+              <div class="social-row"><span class="social-dot block"></span><span>Private conversations</span></div>
+              <div class="social-row"><span class="social-dot block"></span><span>Financial details</span></div>
+              <div class="social-row"><span class="social-dot block"></span><span>Exact home address</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide demo-slide">
+      <div class="demo-embed">
+        <iframe class="demo-frame" title="Demo Prototype" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Agent-to-Agent Prototype&lt;/title&gt;
+    &lt;style&gt;
+      @import url(&quot;https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&amp;family=Space+Grotesk:wght@500&amp;display=swap&quot;);
+
+      :root {
+        --bg: #0b0c0f;
+        --surface-1: #111317;
+        --surface-2: #15181d;
+        --surface-3: #1b2028;
+        --surface-4: #232a34;
+        --card: #0f0f10;
+        --line: #2a3038;
+        --text: #f2f4f8;
+        --sub: #9ca3af;
+        --blue: #3b82f6;
+        --blue-soft: #172554;
+        --green: #059669;
+        --amber: #f59e0b;
+        --amber-soft: #332701;
+        --chip: #1f2937;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: &quot;IBM Plex Sans&quot;, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 300;
+        background:
+          radial-gradient(1000px 620px at 8% -12%, rgba(150, 170, 220, 0.08), transparent 62%),
+          radial-gradient(900px 560px at 92% -5%, rgba(120, 150, 220, 0.06), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        padding: 20px 20px 12px;
+        box-shadow: none;
+      }
+
+      .header-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.15;
+        font-family: &quot;Space Grotesk&quot;, &quot;IBM Plex Sans&quot;, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .scenario-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .scenario-select {
+        width: 340px;
+        max-width: 100%;
+        padding-right: 44px;
+        font-weight: 500;
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; width=&#x27;12&#x27; height=&#x27;8&#x27; viewBox=&#x27;0 0 12 8&#x27;%3E%3Cpath d=&#x27;M1 1l5 5 5-5&#x27; stroke=&#x27;%23cbd5e1&#x27; stroke-width=&#x27;1.4&#x27; stroke-linecap=&#x27;round&#x27; stroke-linejoin=&#x27;round&#x27; fill=&#x27;none&#x27;/%3E%3C/svg%3E&quot;);
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 12px 8px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button,
+      select {
+        border: 1px solid var(--line);
+        background: var(--surface-1);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+
+      button.primary {
+        background: var(--surface-4);
+        border-color: var(--surface-4);
+        color: #e5e7eb;
+      }
+
+      button:hover,
+      select:hover {
+        cursor: pointer;
+        filter: brightness(0.98);
+      }
+
+      .layout {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+        gap: 14px;
+        transform: none;
+      }
+
+      .panel {
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        box-shadow: none;
+        overflow: hidden;
+      }
+
+      #ops-panel {
+        overflow: visible;
+      }
+
+      .panel-head {
+        padding: 12px 14px;
+        border-bottom: none;
+      }
+
+      .panel-head.phone-head {
+        width: 320px;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 6px 0 10px;
+        text-align: center;
+      }
+
+      .panel-head.ops-toggle-head {
+        width: max-content;
+        margin: 0 auto;
+        padding: 2px 0 10px;
+        text-align: center;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 16px;
+        font-family: &quot;Space Grotesk&quot;, &quot;IBM Plex Sans&quot;, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .phone-shell {
+        background: transparent;
+        padding: 12px;
+      }
+
+      .right-phones {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .right-phones.three-user-mode {
+        gap: 8px;
+      }
+
+      .right-phones.three-user-mode .composer {
+        display: none;
+      }
+
+      .phone-shell.compact {
+        padding: 6px 12px;
+      }
+
+      .phone {
+        margin: 0 auto;
+        width: 320px;
+        max-width: 100%;
+        height: 640px;
+        border: 6px solid var(--surface-3);
+        border-radius: 34px;
+        background: var(--surface-2);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .phone.compact {
+        height: 316px;
+      }
+
+      .phone-notch {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--bg);
+        z-index: 5;
+      }
+
+      .phone-top {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 6px;
+        padding: 12px 12px 10px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface-2);
+      }
+
+      .top-meta {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #a6afbe;
+        margin-top: 6px;
+      }
+
+      .top-icons {
+        letter-spacing: 0.02em;
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #f8fafc;
+      }
+
+      .chat-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #e5e7eb;
+      }
+
+      .chat-status {
+        font-size: 11px;
+        color: #94a3b8;
+      }
+
+      .chat {
+        flex: 1;
+        background: linear-gradient(180deg, var(--surface-3) 0%, var(--surface-1) 100%);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+      }
+
+      .composer {
+        padding: 8px 10px;
+        border-top: 1px solid var(--line);
+        background: var(--surface-3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .composer-input {
+        flex: 1;
+        border: 1px solid #333b49;
+        border-radius: 999px;
+        background: var(--surface-3);
+        color: #7c8799;
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      .composer-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid #3a4354;
+        background: var(--surface-4);
+        color: #d5d9e2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        padding: 0;
+      }
+
+      .composer-icon svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .bubble {
+        max-width: 78%;
+        border-radius: 18px;
+        border: none;
+        background: var(--surface-4);
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #e5e7eb;
+      }
+
+      .bubble.human {
+        margin-left: auto;
+        border-radius: 18px 18px 6px 18px;
+        background: #2563eb;
+        color: #eef2ff;
+      }
+
+      .bubble.agent {
+        margin-right: auto;
+        border-radius: 18px 18px 18px 6px;
+        background: var(--surface-4);
+      }
+
+      .bubble.approval {
+        background: var(--amber-soft);
+        color: #fde68a;
+      }
+
+      .bubble-image {
+        width: 100%;
+        max-width: 220px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .ops {
+        height: 640px;
+        background: var(--surface-2);
+        border-radius: 18px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+
+      .dot-atlas {
+        background: #3b82f6;
+      }
+
+      .dot-iris {
+        background: #a855f7;
+      }
+
+      .dot-pulse {
+        background: #14b8a6;
+      }
+
+      .dot-beacon {
+        background: #f59e0b;
+      }
+
+      .ops-lanes {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(170px, 1fr));
+        gap: 12px;
+        overflow-x: auto;
+        padding: 2px 2px 6px;
+      }
+
+      .lane {
+        min-height: 0;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+
+      .lane-head {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 4px 4px;
+        border-bottom: none;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        font-family: &quot;Space Grotesk&quot;, &quot;IBM Plex Sans&quot;, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      .lane-feed {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 6px;
+      }
+
+      .lane-empty {
+        color: #64748b;
+        font-size: 12px;
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      .event {
+        border: none;
+        border-radius: 10px;
+        padding: 8px;
+        background: var(--surface-3);
+      }
+
+      .event-meta {
+        margin-top: 6px;
+        font-size: 11px;
+        color: #a1a1aa;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .chip {
+        background: var(--chip);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+
+      .chip.a2a {
+        background: #1e1b4b;
+        color: #c7d2fe;
+      }
+
+      .chip.approval {
+        background: #451a03;
+        color: #fcd34d;
+      }
+
+      .chip.complete {
+        background: #052e16;
+        color: #86efac;
+      }
+
+      .event-text {
+        font-size: 14px;
+        color: #d1d5db;
+        line-height: 1.35;
+      }
+
+      .empty {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+
+      @media (max-width: 1200px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .ops-lanes {
+          grid-template-columns: 1fr;
+        }
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div class=&quot;container&quot;&gt;
+      &lt;section class=&quot;header&quot;&gt;
+        &lt;div class=&quot;header-row&quot;&gt;
+          &lt;div class=&quot;title-wrap&quot;&gt;
+            &lt;h1 class=&quot;title&quot;&gt;Agent-to-Agent Experience Prototype&lt;/h1&gt;
+            &lt;div class=&quot;scenario-row&quot;&gt;
+              &lt;select id=&quot;scenario-select&quot; class=&quot;scenario-select&quot;&gt;
+                &lt;option value=&quot;coffee&quot;&gt;Simple: Coffee Coordination with Friend&lt;/option&gt;
+              &lt;option value=&quot;dinner&quot;&gt;Complex: 3-User Dinner Coordination&lt;/option&gt;
+                &lt;option value=&quot;surprise&quot;&gt;Discreet: Engagement Ring Planning&lt;/option&gt;
+              &lt;/select&gt;
+              &lt;button id=&quot;play-btn&quot; class=&quot;primary&quot;&gt;Play&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;controls&quot;&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;layout&quot; id=&quot;layout-grid&quot;&gt;
+        &lt;article class=&quot;panel&quot;&gt;
+          &lt;div class=&quot;panel-head phone-head&quot;&gt;
+            &lt;h2 class=&quot;panel-title&quot;&gt;Lena + Atlas&lt;/h2&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;phone-shell&quot;&gt;
+            &lt;div class=&quot;phone&quot;&gt;
+              &lt;div class=&quot;phone-notch&quot;&gt;&lt;/div&gt;
+              &lt;div class=&quot;phone-top&quot;&gt;
+                &lt;div class=&quot;top-meta&quot;&gt;
+                  &lt;span&gt;9:41&lt;/span&gt;
+                  &lt;span class=&quot;top-icons&quot;&gt;LTE ▮▮▮&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;avatar&quot;&gt;A&lt;/div&gt;
+                &lt;div&gt;
+                  &lt;div class=&quot;chat-name&quot;&gt;Atlas&lt;/div&gt;
+                  &lt;div class=&quot;chat-status&quot;&gt;Personal assistant • active now&lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;chat&quot; id=&quot;phone-a-chat&quot;&gt;&lt;/div&gt;
+              &lt;div class=&quot;composer&quot;&gt;
+                &lt;button class=&quot;composer-icon&quot;&gt;+&lt;/button&gt;
+                &lt;div class=&quot;composer-input&quot;&gt;iMessage&lt;/div&gt;
+                &lt;button class=&quot;composer-icon&quot; aria-label=&quot;Send&quot;&gt;
+                  &lt;svg viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;&gt;
+                    &lt;path d=&quot;M5 12h12&quot;&gt;&lt;/path&gt;
+                    &lt;path d=&quot;M13 6l6 6-6 6&quot;&gt;&lt;/path&gt;
+                  &lt;/svg&gt;
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;panel&quot; id=&quot;ops-panel&quot;&gt;
+          &lt;div class=&quot;panel-head ops-toggle-head&quot;&gt;
+            &lt;button id=&quot;toggle-ops-btn&quot;&gt;Agent Coordination&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;ops&quot; id=&quot;ops-content&quot;&gt;
+            &lt;div class=&quot;ops-lanes&quot; id=&quot;ops-lanes&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;panel&quot;&gt;
+          &lt;div class=&quot;panel-head phone-head&quot;&gt;
+            &lt;h2 class=&quot;panel-title&quot;&gt;Noah + Iris&lt;/h2&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;right-phones&quot; id=&quot;right-phones&quot;&gt;
+            &lt;div class=&quot;phone-shell&quot; id=&quot;phone-b-shell&quot;&gt;
+              &lt;div class=&quot;phone&quot; id=&quot;phone-b-frame&quot;&gt;
+                &lt;div class=&quot;phone-notch&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;phone-top&quot;&gt;
+                  &lt;div class=&quot;top-meta&quot;&gt;
+                    &lt;span&gt;9:41&lt;/span&gt;
+                    &lt;span class=&quot;top-icons&quot;&gt;LTE ▮▮▮&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;div class=&quot;avatar&quot;&gt;I&lt;/div&gt;
+                  &lt;div&gt;
+                    &lt;div class=&quot;chat-name&quot;&gt;Iris&lt;/div&gt;
+                    &lt;div class=&quot;chat-status&quot;&gt;Personal assistant • active now&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;chat&quot; id=&quot;phone-b-chat&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;composer&quot;&gt;
+                  &lt;button class=&quot;composer-icon&quot;&gt;+&lt;/button&gt;
+                  &lt;div class=&quot;composer-input&quot;&gt;iMessage&lt;/div&gt;
+                &lt;button class=&quot;composer-icon&quot; aria-label=&quot;Send&quot;&gt;
+                  &lt;svg viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;&gt;
+                    &lt;path d=&quot;M5 12h12&quot;&gt;&lt;/path&gt;
+                    &lt;path d=&quot;M13 6l6 6-6 6&quot;&gt;&lt;/path&gt;
+                  &lt;/svg&gt;
+                &lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;phone-shell compact&quot; id=&quot;phone-c-shell&quot; style=&quot;display:none;&quot;&gt;
+              &lt;div class=&quot;phone compact&quot;&gt;
+                &lt;div class=&quot;phone-top&quot;&gt;
+                  &lt;div class=&quot;top-meta&quot;&gt;
+                    &lt;span&gt;9:41&lt;/span&gt;
+                    &lt;span class=&quot;top-icons&quot;&gt;LTE ▮▮▮&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;div class=&quot;avatar&quot;&gt;P&lt;/div&gt;
+                  &lt;div&gt;
+                    &lt;div class=&quot;chat-name&quot;&gt;Pulse&lt;/div&gt;
+                    &lt;div class=&quot;chat-status&quot;&gt;Personal assistant • active now&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;chat&quot; id=&quot;phone-c-chat&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;composer&quot;&gt;
+                  &lt;button class=&quot;composer-icon&quot;&gt;+&lt;/button&gt;
+                  &lt;div class=&quot;composer-input&quot;&gt;iMessage&lt;/div&gt;
+                  &lt;button class=&quot;composer-icon&quot; aria-label=&quot;Send&quot;&gt;
+                    &lt;svg viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;&gt;
+                      &lt;path d=&quot;M5 12h12&quot;&gt;&lt;/path&gt;
+                      &lt;path d=&quot;M13 6l6 6-6 6&quot;&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+      const scenarios = {
+        coffee: {
+          subtitle: &quot;Atlas and Iris coordinate coffee, then each human confirms naturally in chat.&quot;,
+          events: [
+            { id: &quot;r1&quot;, at: 1000, channel: &quot;phoneA&quot;, kind: &quot;human_message&quot;, actor: &quot;Lena&quot;, text: &quot;Can you coordinate coffee with Noah this week?&quot; },
+            { id: &quot;r2&quot;, at: 2200, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Absolutely. I will coordinate with Iris and bring back the best slot.&quot; },
+            { id: &quot;r3&quot;, at: 3400, channel: &quot;ops&quot;, kind: &quot;background_task&quot;, actor: &quot;Atlas&quot;, text: &quot;Collecting Lena&#x27;s free windows and preferred neighborhoods.&quot;, tag: &quot;Task&quot; },
+            { id: &quot;r4&quot;, at: 4700, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Atlas -&gt; Iris&quot;, text: &quot;Can Noah do Thursday 8:30 AM or Friday 10:00 AM for coffee?&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;r5&quot;, at: 6000, channel: &quot;phoneB&quot;, kind: &quot;agent_message&quot;, actor: &quot;Iris&quot;, text: &quot;Lena is free Thursday 8:30 or Friday 10:00 for coffee. Which works better for you?&quot; },
+            { id: &quot;r6&quot;, at: 7300, channel: &quot;phoneB&quot;, kind: &quot;human_message&quot;, actor: &quot;Noah&quot;, text: &quot;Thursday 8:30 works for me.&quot; },
+            { id: &quot;r7&quot;, at: 8600, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Iris -&gt; Atlas&quot;, text: &quot;Noah picked Thursday 8:30 AM.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;r8&quot;, at: 9800, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Atlas -&gt; Iris&quot;, text: &quot;From Lena&#x27;s saved preferences: she likes cozy cafes with good pastries and low noise.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;r9&quot;, at: 11100, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Iris -&gt; Atlas&quot;, text: &quot;Noah&#x27;s preferences show matcha and specialty pour-over interest. He also avoids crowded chains.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;r10&quot;, at: 12400, channel: &quot;ops&quot;, kind: &quot;background_task&quot;, actor: &quot;Atlas&quot;, text: &quot;Combining both preference signals with wait time, travel time, and seating reliability.&quot;, tag: &quot;Task&quot; },
+            { id: &quot;r11&quot;, at: 13700, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Noah chose Thursday 8:30. Based on both of your preferences, Groundline Coffee fits best. Should I lock it in?&quot; },
+            { id: &quot;r12&quot;, at: 15000, channel: &quot;phoneA&quot;, kind: &quot;human_message&quot;, actor: &quot;Lena&quot;, text: &quot;Yes, lock it in.&quot; },
+            { id: &quot;r13&quot;, at: 16200, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Atlas -&gt; Iris&quot;, text: &quot;Confirmed by Lena. Finalizing calendar blocks and venue notes.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;r14&quot;, at: 17400, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Done. Coffee is set for Thursday 8:30 at Groundline.&quot; },
+            { id: &quot;r15&quot;, at: 18600, channel: &quot;phoneB&quot;, kind: &quot;agent_message&quot;, actor: &quot;Iris&quot;, text: &quot;All set. Coffee with Lena is confirmed and on your calendar.&quot; }
+          ]
+        },
+        dinner: {
+          subtitle: &quot;Three-person dinner coordination with natural back-and-forth confirmations.&quot;,
+          events: [
+            { id: &quot;d1&quot;, at: 1000, channel: &quot;phoneA&quot;, kind: &quot;human_message&quot;, actor: &quot;Lena&quot;, text: &quot;Can you coordinate a dinner for me, Noah, and Mia this week?&quot; },
+            { id: &quot;d2&quot;, at: 2200, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Yes. I will coordinate with the other assistants and send the best option.&quot; },
+            { id: &quot;d3&quot;, at: 3500, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Atlas -&gt; Iris/Pulse&quot;, text: &quot;Requesting availability, budget range, and dietary constraints.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;d4&quot;, at: 4800, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Iris -&gt; Atlas&quot;, text: &quot;Noah can do Friday after 7 PM. Vegetarian preference.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;d5&quot;, at: 5900, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Pulse -&gt; Atlas&quot;, text: &quot;Mia can do Friday after 7 PM. Budget target under $45.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;d7&quot;, at: 7000, channel: &quot;ops&quot;, kind: &quot;background_task&quot;, actor: &quot;Atlas&quot;, text: &quot;Scoring options with travel-time fairness and menu constraints.&quot;, tag: &quot;Task&quot; },
+            { id: &quot;d8&quot;, at: 8300, channel: &quot;phoneB&quot;, kind: &quot;agent_message&quot;, actor: &quot;Iris&quot;, text: &quot;Group dinner option is Friday 7:30 PM in Midtown. Are you in?&quot; },
+            { id: &quot;d9&quot;, at: 9600, channel: &quot;phoneB&quot;, kind: &quot;human_message&quot;, actor: &quot;Noah&quot;, text: &quot;Yes, that works for me.&quot; },
+            { id: &quot;d10&quot;, at: 10800, channel: &quot;phoneC&quot;, kind: &quot;agent_message&quot;, actor: &quot;Pulse&quot;, text: &quot;Dinner plan is Friday 7:30 PM in Midtown. Does that work for you?&quot; },
+            { id: &quot;d11&quot;, at: 12000, channel: &quot;phoneC&quot;, kind: &quot;human_message&quot;, actor: &quot;Mia&quot;, text: &quot;Yes, I can make that.&quot; },
+            { id: &quot;d12&quot;, at: 13200, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Iris -&gt; Atlas&quot;, text: &quot;Noah confirmed the Friday option.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;d13&quot;, at: 14400, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Pulse -&gt; Atlas&quot;, text: &quot;Mia confirmed the Friday option.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;d14&quot;, at: 15600, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Noah and Mia are both confirmed. Finalize Friday 7:30?&quot; },
+            { id: &quot;d15&quot;, at: 16800, channel: &quot;phoneA&quot;, kind: &quot;human_message&quot;, actor: &quot;Lena&quot;, text: &quot;Finalize it.&quot; },
+            { id: &quot;d16&quot;, at: 18000, channel: &quot;ops&quot;, kind: &quot;status&quot;, actor: &quot;Atlas&quot;, text: &quot;Dinner confirmed for Lena, Noah, and Mia. Logistics shared.&quot;, tag: &quot;Complete&quot; },
+            { id: &quot;d17&quot;, at: 19200, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Done. Dinner is booked and everyone has details.&quot; },
+            { id: &quot;d18&quot;, at: 20400, channel: &quot;phoneB&quot;, kind: &quot;agent_message&quot;, actor: &quot;Iris&quot;, text: &quot;Confirmed. Dinner is on your calendar for Friday 7:30 PM.&quot; },
+            { id: &quot;d19&quot;, at: 21600, channel: &quot;phoneC&quot;, kind: &quot;agent_message&quot;, actor: &quot;Pulse&quot;, text: &quot;You&#x27;re all set. Dinner is confirmed and on your calendar.&quot; }
+          ]
+        },
+        surprise: {
+          subtitle: &quot;Atlas and Iris coordinate engagement ring preferences discreetly while Noah stays unaware.&quot;,
+          events: [
+            { id: &quot;s1&quot;, at: 1000, channel: &quot;phoneA&quot;, kind: &quot;human_message&quot;, actor: &quot;Lena&quot;, text: &quot;Help me discreetly plan an engagement ring for Noah.&quot; },
+            { id: &quot;s2&quot;, at: 2200, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;I can do that. I will coordinate privately and keep the process discreet.&quot; },
+            { id: &quot;s3&quot;, at: 3500, channel: &quot;ops&quot;, kind: &quot;background_task&quot;, actor: &quot;Atlas&quot;, text: &quot;Opening confidential thread with secrecy safeguards.&quot;, tag: &quot;Task&quot; },
+            { id: &quot;s4&quot;, at: 4700, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Atlas -&gt; Iris&quot;, text: &quot;Requesting anonymized jewelry preference profile and size confidence.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;s5&quot;, at: 6000, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Iris -&gt; Atlas&quot;, text: &quot;Profile: classic solitaire leaning, white-gold preference, size confidence medium-high.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;s8&quot;, at: 9700, channel: &quot;ops&quot;, kind: &quot;background_task&quot;, actor: &quot;Atlas&quot;, text: &quot;Matching ring inventory by style, delivery speed, and budget.&quot;, tag: &quot;Task&quot; },
+            { id: &quot;s9&quot;, at: 10900, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Atlas -&gt; Iris&quot;, text: &quot;Candidate selected. Confirming fit-risk and exchange policy quality.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;s10&quot;, at: 12100, channel: &quot;ops&quot;, kind: &quot;agent_to_agent&quot;, actor: &quot;Iris -&gt; Atlas&quot;, text: &quot;Fit risk acceptable. Exchange policy strong. No ring-related outreach to Noah.&quot;, tag: &quot;A2A&quot; },
+            { id: &quot;s11&quot;, at: 13300, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Here is the top ring option I found.&quot;, image: &quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; width=&#x27;560&#x27; height=&#x27;360&#x27; viewBox=&#x27;0 0 560 360&#x27;%3E%3Cdefs%3E%3ClinearGradient id=&#x27;g&#x27; x1=&#x27;0&#x27; y1=&#x27;0&#x27; x2=&#x27;1&#x27; y2=&#x27;1&#x27;%3E%3Cstop offset=&#x27;0&#x27; stop-color=&#x27;%23192034&#x27;/%3E%3Cstop offset=&#x27;1&#x27; stop-color=&#x27;%233b2a59&#x27;/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=&#x27;560&#x27; height=&#x27;360&#x27; rx=&#x27;28&#x27; fill=&#x27;url(%23g)&#x27;/%3E%3Cellipse cx=&#x27;280&#x27; cy=&#x27;265&#x27; rx=&#x27;130&#x27; ry=&#x27;34&#x27; fill=&#x27;%23000000&#x27; opacity=&#x27;0.25&#x27;/%3E%3Cpath d=&#x27;M190 228c0 45 40 82 90 82s90-37 90-82&#x27; stroke=&#x27;%23d8dbe7&#x27; stroke-width=&#x27;20&#x27; fill=&#x27;none&#x27;/%3E%3Cpath d=&#x27;M220 115l60-58 60 58-20 56h-80z&#x27; fill=&#x27;%23e7ecff&#x27; opacity=&#x27;0.98&#x27;/%3E%3Cpath d=&#x27;M280 58v113M220 115h120M246 87l34 84M314 87l-34 84&#x27; stroke=&#x27;%23b7c0df&#x27; stroke-width=&#x27;5&#x27; opacity=&#x27;0.7&#x27;/%3E%3Ctext x=&#x27;280&#x27; y=&#x27;332&#x27; text-anchor=&#x27;middle&#x27; fill=&#x27;%23e8eaf6&#x27; font-size=&#x27;22&#x27; font-family=&#x27;Arial,sans-serif&#x27;%3ERound%20solitaire%20-%20White%20gold%3C/text%3E%3C/svg%3E&quot; },
+            { id: &quot;s12&quot;, at: 14500, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Top option is ready at $4,800 with 48-hour delivery. Want me to place a private hold?&quot; },
+            { id: &quot;s13&quot;, at: 15700, channel: &quot;phoneA&quot;, kind: &quot;human_message&quot;, actor: &quot;Lena&quot;, text: &quot;Yes, place the hold.&quot; },
+            { id: &quot;s14&quot;, at: 16900, channel: &quot;ops&quot;, kind: &quot;status&quot;, actor: &quot;Atlas&quot;, text: &quot;Ring hold confirmed. Delivery and receipts routed in private mode.&quot;, tag: &quot;Complete&quot; },
+            { id: &quot;s15&quot;, at: 18100, channel: &quot;phoneA&quot;, kind: &quot;agent_message&quot;, actor: &quot;Atlas&quot;, text: &quot;Done. The ring is secured and Noah has not been notified.&quot; }
+          ]
+        }
+      };
+
+      const state = {
+        scenarioId: &quot;coffee&quot;,
+        elapsedMs: 0,
+        playing: false,
+        speed: 0.75,
+        runtimeEvents: [],
+        activeLanes: [],
+        opsOpen: false
+      };
+
+      const TIMING_CONFIG = {
+        scale: 1.35,
+        minGapMs: 1200
+      };
+
+      const dom = {
+        layoutGrid: document.getElementById(&quot;layout-grid&quot;),
+        opsPanel: document.getElementById(&quot;ops-panel&quot;),
+        opsContent: document.getElementById(&quot;ops-content&quot;),
+        scenarioSelect: document.getElementById(&quot;scenario-select&quot;),
+        toggleOpsBtn: document.getElementById(&quot;toggle-ops-btn&quot;),
+        playBtn: document.getElementById(&quot;play-btn&quot;),
+        rightPhones: document.getElementById(&quot;right-phones&quot;),
+        phoneBShell: document.getElementById(&quot;phone-b-shell&quot;),
+        phoneBFrame: document.getElementById(&quot;phone-b-frame&quot;),
+        phoneCShell: document.getElementById(&quot;phone-c-shell&quot;),
+        phoneAChat: document.getElementById(&quot;phone-a-chat&quot;),
+        phoneBChat: document.getElementById(&quot;phone-b-chat&quot;),
+        phoneCChat: document.getElementById(&quot;phone-c-chat&quot;),
+        opsLanes: document.getElementById(&quot;ops-lanes&quot;)
+      };
+
+      const LANE_META = {
+        atlas: { label: &quot;Atlas&quot;, dotClass: &quot;dot-atlas&quot; },
+        iris: { label: &quot;Iris&quot;, dotClass: &quot;dot-iris&quot; },
+        pulse: { label: &quot;Pulse&quot;, dotClass: &quot;dot-pulse&quot; },
+        beacon: { label: &quot;Beacon&quot;, dotClass: &quot;dot-beacon&quot; }
+      };
+
+      function laneForEvent(event) {
+        const actor = event.actor || &quot;&quot;;
+        const sender = actor.includes(&quot;-&gt;&quot;) ? actor.split(&quot;-&gt;&quot;)[0].trim() : actor;
+        if (sender.includes(&quot;Atlas&quot;)) return &quot;atlas&quot;;
+        if (sender.includes(&quot;Iris&quot;)) return &quot;iris&quot;;
+        if (sender.includes(&quot;Pulse&quot;)) return &quot;pulse&quot;;
+        if (sender.includes(&quot;Beacon&quot;)) return &quot;beacon&quot;;
+        return &quot;atlas&quot;;
+      }
+
+      function laneNode(laneKey) {
+        return document.getElementById(&quot;lane-&quot; + laneKey);
+      }
+
+      function relevantLanesForScenario() {
+        const opsEvents = currentScenario().events.filter((event) =&gt; event.channel === &quot;ops&quot;);
+        const detected = new Set();
+        for (const event of opsEvents) {
+          detected.add(laneForEvent(event));
+        }
+        const ordered = [&quot;atlas&quot;, &quot;iris&quot;, &quot;pulse&quot;, &quot;beacon&quot;];
+        const lanes = ordered.filter((lane) =&gt; detected.has(lane));
+        return lanes.length &gt; 0 ? lanes : [&quot;atlas&quot;];
+      }
+
+      function renderOpsScaffold() {
+        dom.opsLanes.innerHTML = &quot;&quot;;
+
+        const lanes = state.activeLanes;
+        const isDinnerScenario = state.scenarioId === &quot;dinner&quot;;
+        const laneMinWidth = isDinnerScenario ? 140 : 170;
+        dom.opsLanes.style.gridTemplateColumns = &quot;repeat(&quot; + lanes.length + &quot;, minmax(&quot; + laneMinWidth + &quot;px, 1fr))&quot;;
+        dom.opsLanes.style.overflowX = isDinnerScenario ? &quot;hidden&quot; : &quot;auto&quot;;
+
+        for (const laneKey of lanes) {
+          const meta = LANE_META[laneKey];
+
+          const lane = document.createElement(&quot;div&quot;);
+          lane.className = &quot;lane&quot;;
+          lane.innerHTML =
+            &#x27;&lt;div class=&quot;lane-head&quot;&gt;&lt;span class=&quot;legend-dot &#x27; +
+            meta.dotClass +
+            &#x27;&quot;&gt;&lt;/span&gt;&#x27; +
+            meta.label +
+            &#x27;&lt;/div&gt;&lt;div class=&quot;lane-feed&quot; id=&quot;lane-&#x27; +
+            laneKey +
+            &#x27;&quot;&gt;&lt;/div&gt;&#x27;;
+          dom.opsLanes.appendChild(lane);
+        }
+      }
+
+      function currentScenario() {
+        return scenarios[state.scenarioId];
+      }
+
+      function resetScenario() {
+        const baseEvents = paceBaseEvents(currentScenario().events.map((e) =&gt; ({ ...e })));
+        state.runtimeEvents = baseEvents;
+        state.activeLanes = relevantLanesForScenario();
+        state.elapsedMs = 0;
+        state.playing = false;
+        renderOpsScaffold();
+        render();
+      }
+
+      function paceBaseEvents(events) {
+        const sorted = events.slice().sort((a, b) =&gt; a.at - b.at);
+        let prevAt = 0;
+        return sorted.map((event, idx) =&gt; {
+          const scaledAt = Math.round(event.at * TIMING_CONFIG.scale);
+          const at = idx === 0 ? scaledAt : Math.max(scaledAt, prevAt + TIMING_CONFIG.minGapMs);
+          prevAt = at;
+          return { ...event, at };
+        });
+      }
+
+      function visibleEvents() {
+        return state.runtimeEvents.filter((e) =&gt; e.at &lt;= state.elapsedMs).sort((a, b) =&gt; a.at - b.at);
+      }
+
+      function totalEnd() {
+        let max = 0;
+        for (const e of state.runtimeEvents) {
+          if (e.at &gt; max) max = e.at;
+        }
+        return max + 1000;
+      }
+
+      function chipClass(tag) {
+        if (tag === &quot;A2A&quot;) return &quot;chip a2a&quot;;
+        if (tag === &quot;Approval&quot;) return &quot;chip approval&quot;;
+        if (tag === &quot;Complete&quot;) return &quot;chip complete&quot;;
+        return &quot;chip&quot;;
+      }
+
+      function renderPhone(chatNode, events) {
+        chatNode.innerHTML = &quot;&quot;;
+        if (events.length === 0) {
+          const empty = document.createElement(&quot;p&quot;);
+          empty.className = &quot;empty&quot;;
+          empty.textContent = &quot;No messages yet.&quot;;
+          chatNode.appendChild(empty);
+          return;
+        }
+
+        for (const event of events) {
+          const bubble = document.createElement(&quot;div&quot;);
+          let bubbleClass = &quot;bubble &quot;;
+          if (event.kind === &quot;human_message&quot;) {
+            bubbleClass += &quot;human&quot;;
+          } else {
+            bubbleClass += &quot;agent&quot;;
+          }
+          if (event.kind === &quot;approval_request&quot;) bubbleClass += &quot; approval&quot;;
+          bubble.className = bubbleClass;
+
+          const text = document.createElement(&quot;div&quot;);
+          text.textContent = event.text;
+          if (event.image) {
+            const image = document.createElement(&quot;img&quot;);
+            image.className = &quot;bubble-image&quot;;
+            image.src = event.image;
+            image.alt = &quot;Ring option preview&quot;;
+            bubble.appendChild(image);
+          }
+          bubble.appendChild(text);
+
+          chatNode.appendChild(bubble);
+        }
+
+        chatNode.scrollTop = chatNode.scrollHeight;
+      }
+
+      function renderOps(events) {
+        const lanes = state.activeLanes;
+        lanes.forEach((key) =&gt; {
+          const node = laneNode(key);
+          if (node) node.innerHTML = &quot;&quot;;
+        });
+
+        if (events.length === 0) {
+          lanes.forEach((key) =&gt; {
+            const empty = document.createElement(&quot;p&quot;);
+            empty.className = &quot;lane-empty&quot;;
+            empty.textContent = &quot;No activity yet&quot;;
+            const node = laneNode(key);
+            if (node) node.appendChild(empty);
+          });
+          return;
+        }
+
+        for (const event of events) {
+          const item = document.createElement(&quot;div&quot;);
+          item.className = &quot;event&quot;;
+
+          const text = document.createElement(&quot;div&quot;);
+          text.className = &quot;event-text&quot;;
+          text.textContent = event.text;
+          item.appendChild(text);
+
+          const meta = document.createElement(&quot;div&quot;);
+          meta.className = &quot;event-meta&quot;;
+          meta.textContent = event.actor + &quot; · &quot;;
+          const chip = document.createElement(&quot;span&quot;);
+          chip.className = chipClass(event.tag || &quot;Task&quot;);
+          chip.textContent = event.tag || &quot;Task&quot;;
+          meta.appendChild(chip);
+          item.appendChild(meta);
+
+          const targetLane = laneForEvent(event);
+          if (lanes.includes(targetLane)) {
+            const node = laneNode(targetLane);
+            if (node) node.appendChild(item);
+          }
+        }
+
+        lanes.forEach((key) =&gt; {
+          const lane = laneNode(key);
+          if (lane) lane.scrollTop = lane.scrollHeight;
+        });
+      }
+
+      function render() {
+        const events = visibleEvents();
+
+        const phoneAEvents = events.filter((e) =&gt; e.channel === &quot;phoneA&quot;);
+        const phoneBEvents = events.filter((e) =&gt; e.channel === &quot;phoneB&quot;);
+        const phoneCEvents = events.filter((e) =&gt; e.channel === &quot;phoneC&quot;);
+        const opsEvents = events.filter((e) =&gt; e.channel === &quot;ops&quot;);
+        const isDinnerScenario = state.scenarioId === &quot;dinner&quot;;
+
+        renderPhone(dom.phoneAChat, phoneAEvents);
+        renderPhone(dom.phoneBChat, phoneBEvents);
+        renderPhone(dom.phoneCChat, phoneCEvents);
+
+        dom.phoneCShell.style.display = isDinnerScenario ? &quot;block&quot; : &quot;none&quot;;
+        dom.phoneBShell.classList.toggle(&quot;compact&quot;, isDinnerScenario);
+        dom.phoneBFrame.classList.toggle(&quot;compact&quot;, isDinnerScenario);
+        dom.rightPhones.classList.toggle(&quot;three-user-mode&quot;, isDinnerScenario);
+
+        if (state.opsOpen) {
+          renderOps(opsEvents);
+        }
+        dom.opsContent.style.display = state.opsOpen ? &quot;flex&quot; : &quot;none&quot;;
+        dom.layoutGrid.style.gridTemplateColumns = state.opsOpen
+          ? (state.scenarioId === &quot;dinner&quot;
+              ? &quot;minmax(0, 0.9fr) minmax(0, 1.45fr) minmax(0, 0.9fr)&quot;
+              : &quot;minmax(0, 1fr) minmax(0, 1.08fr) minmax(0, 1fr)&quot;)
+          : &quot;auto auto auto&quot;;
+        dom.layoutGrid.style.justifyContent = state.opsOpen ? &quot;stretch&quot; : &quot;center&quot;;
+        dom.layoutGrid.style.gap = state.opsOpen ? &quot;0px&quot; : &quot;20px&quot;;
+        dom.toggleOpsBtn.textContent = state.opsOpen ? &quot;Hide Agent Coordination&quot; : &quot;Agent Coordination&quot;;
+        dom.playBtn.textContent = state.playing ? &quot;Pause&quot; : &quot;Play&quot;;
+      }
+
+      dom.scenarioSelect.addEventListener(&quot;change&quot;, (e) =&gt; {
+        state.scenarioId = e.target.value;
+        resetScenario();
+      });
+
+      dom.toggleOpsBtn.addEventListener(&quot;click&quot;, () =&gt; {
+        state.opsOpen = !state.opsOpen;
+        render();
+      });
+
+      dom.playBtn.addEventListener(&quot;click&quot;, () =&gt; {
+        state.playing = !state.playing;
+        render();
+      });
+
+      setInterval(() =&gt; {
+        if (!state.playing) return;
+        state.elapsedMs += 100 * state.speed;
+        if (state.elapsedMs &gt;= totalEnd()) state.playing = false;
+        render();
+      }, 100);
+
+      resetScenario();
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+      </div>
+    </section>
+
+    <section class="slide text-only-slide learnings-slide">
+      <div class="left">
+        <h2>Learnings / Constraints</h2>
+        <p class="copy">Relationships are complex. To get this right, agents need a way to map the nuances of how people relate to one another.</p>
+        <p class="copy">Social etiquette, emotional cues, reading the room. These are hard problems. Are our agents intelligent enough to factor all of this in?</p>
+        <p class="copy">Safety and privacy are critical, and the key to making any of this work.</p>
+        <p class="copy">A social profile may not be a simple list. It may need to be far more complex to truly capture someone's social comfort.</p>
+      </div>
+    </section>
+
+    <div class="controls">
+      <div class="btn-row">
+        <button id="prevBtn" type="button" aria-label="Previous slide">&lt;</button>
+        <div class="slide-counter" id="counter">1 / 10</div>
+        <button id="nextBtn" type="button" aria-label="Next slide">&gt;</button>
+      </div>
+    </div>
+    <div class="watermark">Exploratory Concepts • Case Study • Do Not Distribute</div>
+  </main>
+
+  <script>
+    const deck = document.querySelector(".deck");
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const counter = document.getElementById("counter");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const levelDetails = Array.from(document.querySelectorAll("details"));
+    let current = 0;
+
+    function renderSlide(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+      const activeSlide = slides[current];
+      deck.classList.toggle("hide-corner-meta", activeSlide.classList.contains("demo-slide"));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+    }
+
+    function nextSlide() {
+      renderSlide(current + 1);
+    }
+
+    function prevSlide() {
+      renderSlide(current - 1);
+    }
+
+    nextBtn.addEventListener("click", nextSlide);
+    prevBtn.addEventListener("click", prevSlide);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        prevSlide();
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        renderSlide(2);
+      }
+      if (event.key === "End") {
+        event.preventDefault();
+        renderSlide(slides.length - 1);
+      }
+    });
+
+    // Keep slide 2 levels truly collapsible: one expanded at a time.
+    levelDetails.forEach((detail) => {
+      detail.addEventListener("toggle", () => {
+        if (!detail.open) return;
+        levelDetails.forEach((other) => {
+          if (other !== detail) other.open = false;
+        });
+      });
+    });
+
+    renderSlide(2);
+  </script>
+</body>
+</html>

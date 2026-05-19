@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent-to-Agent Prototype</title>
+    <script src="../assets/gate.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&family=Space+Grotesk:wght@500&display=swap");
+
+      :root {
+        --bg: #0b0c0f;
+        --surface-1: #111317;
+        --surface-2: #15181d;
+        --surface-3: #1b2028;
+        --surface-4: #232a34;
+        --card: #0f0f10;
+        --line: #2a3038;
+        --text: #f2f4f8;
+        --sub: #9ca3af;
+        --blue: #3b82f6;
+        --blue-soft: #172554;
+        --green: #059669;
+        --amber: #f59e0b;
+        --amber-soft: #332701;
+        --chip: #1f2937;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 300;
+        background:
+          radial-gradient(1000px 620px at 8% -12%, rgba(150, 170, 220, 0.08), transparent 62%),
+          radial-gradient(900px 560px at 92% -5%, rgba(120, 150, 220, 0.06), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        padding: 20px 20px 12px;
+        box-shadow: none;
+      }
+
+      .header-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.15;
+        font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .scenario-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .scenario-select {
+        width: 340px;
+        max-width: 100%;
+        padding-right: 44px;
+        font-weight: 500;
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23cbd5e1' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 12px 8px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button,
+      select {
+        border: 1px solid var(--line);
+        background: var(--surface-1);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+
+      button.primary {
+        background: var(--surface-4);
+        border-color: var(--surface-4);
+        color: #e5e7eb;
+      }
+
+      button:hover,
+      select:hover {
+        cursor: pointer;
+        filter: brightness(0.98);
+      }
+
+      .layout {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+        gap: 14px;
+        transform: none;
+      }
+
+      .panel {
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        box-shadow: none;
+        overflow: hidden;
+      }
+
+      #ops-panel {
+        overflow: visible;
+      }
+
+      .panel-head {
+        padding: 12px 14px;
+        border-bottom: none;
+      }
+
+      .panel-head.phone-head {
+        width: 320px;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 6px 0 10px;
+        text-align: center;
+      }
+
+      .panel-head.ops-toggle-head {
+        width: max-content;
+        margin: 0 auto;
+        padding: 2px 0 10px;
+        text-align: center;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 16px;
+        font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .phone-shell {
+        background: transparent;
+        padding: 12px;
+      }
+
+      .right-phones {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .right-phones.three-user-mode {
+        gap: 8px;
+      }
+
+      .right-phones.three-user-mode .composer {
+        display: none;
+      }
+
+      .phone-shell.compact {
+        padding: 6px 12px;
+      }
+
+      .phone {
+        margin: 0 auto;
+        width: 320px;
+        max-width: 100%;
+        height: 640px;
+        border: 6px solid var(--surface-3);
+        border-radius: 34px;
+        background: var(--surface-2);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .phone.compact {
+        height: 316px;
+      }
+
+      .phone-notch {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--bg);
+        z-index: 5;
+      }
+
+      .phone-top {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 6px;
+        padding: 12px 12px 10px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface-2);
+      }
+
+      .top-meta {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #a6afbe;
+        margin-top: 6px;
+      }
+
+      .top-icons {
+        letter-spacing: 0.02em;
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #f8fafc;
+      }
+
+      .chat-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #e5e7eb;
+      }
+
+      .chat-status {
+        font-size: 11px;
+        color: #94a3b8;
+      }
+
+      .chat {
+        flex: 1;
+        background: linear-gradient(180deg, var(--surface-3) 0%, var(--surface-1) 100%);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+      }
+
+      .composer {
+        padding: 8px 10px;
+        border-top: 1px solid var(--line);
+        background: var(--surface-3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .composer-input {
+        flex: 1;
+        border: 1px solid #333b49;
+        border-radius: 999px;
+        background: var(--surface-3);
+        color: #7c8799;
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      .composer-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid #3a4354;
+        background: var(--surface-4);
+        color: #d5d9e2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        padding: 0;
+      }
+
+      .composer-icon svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .bubble {
+        max-width: 78%;
+        border-radius: 18px;
+        border: none;
+        background: var(--surface-4);
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #e5e7eb;
+      }
+
+      .bubble.human {
+        margin-left: auto;
+        border-radius: 18px 18px 6px 18px;
+        background: #2563eb;
+        color: #eef2ff;
+      }
+
+      .bubble.agent {
+        margin-right: auto;
+        border-radius: 18px 18px 18px 6px;
+        background: var(--surface-4);
+      }
+
+      .bubble.approval {
+        background: var(--amber-soft);
+        color: #fde68a;
+      }
+
+      .bubble-image {
+        width: 100%;
+        max-width: 220px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .ops {
+        height: 640px;
+        background: var(--surface-2);
+        border-radius: 18px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+
+      .dot-atlas {
+        background: #3b82f6;
+      }
+
+      .dot-iris {
+        background: #a855f7;
+      }
+
+      .dot-pulse {
+        background: #14b8a6;
+      }
+
+      .dot-beacon {
+        background: #f59e0b;
+      }
+
+      .ops-lanes {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(170px, 1fr));
+        gap: 12px;
+        overflow-x: auto;
+        padding: 2px 2px 6px;
+      }
+
+      .lane {
+        min-height: 0;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+
+      .lane-head {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 4px 4px;
+        border-bottom: none;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      .lane-feed {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 6px;
+      }
+
+      .lane-empty {
+        color: #64748b;
+        font-size: 12px;
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      .event {
+        border: none;
+        border-radius: 10px;
+        padding: 8px;
+        background: var(--surface-3);
+      }
+
+      .event-meta {
+        margin-top: 6px;
+        font-size: 11px;
+        color: #a1a1aa;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .chip {
+        background: var(--chip);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+
+      .chip.a2a {
+        background: #1e1b4b;
+        color: #c7d2fe;
+      }
+
+      .chip.approval {
+        background: #451a03;
+        color: #fcd34d;
+      }
+
+      .chip.complete {
+        background: #052e16;
+        color: #86efac;
+      }
+
+      .event-text {
+        font-size: 14px;
+        color: #d1d5db;
+        line-height: 1.35;
+      }
+
+      .empty {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+
+      @media (max-width: 1200px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .ops-lanes {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <section class="header">
+        <div class="header-row">
+          <div class="title-wrap">
+            <h1 class="title">Agent-to-Agent Experience Prototype</h1>
+            <div class="scenario-row">
+              <select id="scenario-select" class="scenario-select">
+                <option value="coffee">Simple: Coffee Coordination with Friend</option>
+              <option value="dinner">Complex: 3-User Dinner Coordination</option>
+                <option value="surprise">Discreet: Engagement Ring Planning</option>
+              </select>
+              <button id="play-btn" class="primary">Play</button>
+            </div>
+          </div>
+          <div class="controls">
+          </div>
+        </div>
+      </section>
+
+      <section class="layout" id="layout-grid">
+        <article class="panel">
+          <div class="panel-head phone-head">
+            <h2 class="panel-title">Lena + Atlas</h2>
+          </div>
+          <div class="phone-shell">
+            <div class="phone">
+              <div class="phone-notch"></div>
+              <div class="phone-top">
+                <div class="top-meta">
+                  <span>9:41</span>
+                  <span class="top-icons">LTE ▮▮▮</span>
+                </div>
+                <div class="avatar">A</div>
+                <div>
+                  <div class="chat-name">Atlas</div>
+                  <div class="chat-status">Personal assistant • active now</div>
+                </div>
+              </div>
+              <div class="chat" id="phone-a-chat"></div>
+              <div class="composer">
+                <button class="composer-icon">+</button>
+                <div class="composer-input">iMessage</div>
+                <button class="composer-icon" aria-label="Send">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h12"></path>
+                    <path d="M13 6l6 6-6 6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel" id="ops-panel">
+          <div class="panel-head ops-toggle-head">
+            <button id="toggle-ops-btn">Agent Coordination</button>
+          </div>
+          <div class="ops" id="ops-content">
+            <div class="ops-lanes" id="ops-lanes"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head phone-head">
+            <h2 class="panel-title">Noah + Iris</h2>
+          </div>
+          <div class="right-phones" id="right-phones">
+            <div class="phone-shell" id="phone-b-shell">
+              <div class="phone" id="phone-b-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-top">
+                  <div class="top-meta">
+                    <span>9:41</span>
+                    <span class="top-icons">LTE ▮▮▮</span>
+                  </div>
+                  <div class="avatar">I</div>
+                  <div>
+                    <div class="chat-name">Iris</div>
+                    <div class="chat-status">Personal assistant • active now</div>
+                  </div>
+                </div>
+                <div class="chat" id="phone-b-chat"></div>
+                <div class="composer">
+                  <button class="composer-icon">+</button>
+                  <div class="composer-input">iMessage</div>
+                <button class="composer-icon" aria-label="Send">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h12"></path>
+                    <path d="M13 6l6 6-6 6"></path>
+                  </svg>
+                </button>
+                </div>
+              </div>
+            </div>
+            <div class="phone-shell compact" id="phone-c-shell" style="display:none;">
+              <div class="phone compact">
+                <div class="phone-top">
+                  <div class="top-meta">
+                    <span>9:41</span>
+                    <span class="top-icons">LTE ▮▮▮</span>
+                  </div>
+                  <div class="avatar">P</div>
+                  <div>
+                    <div class="chat-name">Pulse</div>
+                    <div class="chat-status">Personal assistant • active now</div>
+                  </div>
+                </div>
+                <div class="chat" id="phone-c-chat"></div>
+                <div class="composer">
+                  <button class="composer-icon">+</button>
+                  <div class="composer-input">iMessage</div>
+                  <button class="composer-icon" aria-label="Send">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 12h12"></path>
+                      <path d="M13 6l6 6-6 6"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <script>
+      const scenarios = {
+        coffee: {
+          subtitle: "Atlas and Iris coordinate coffee, then each human confirms naturally in chat.",
+          events: [
+            { id: "r1", at: 1000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Can you coordinate coffee with Noah this week?" },
+            { id: "r2", at: 2200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Absolutely. I will coordinate with Iris and bring back the best slot." },
+            { id: "r3", at: 3400, channel: "ops", kind: "background_task", actor: "Atlas", text: "Collecting Lena's free windows and preferred neighborhoods.", tag: "Task" },
+            { id: "r4", at: 4700, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Can Noah do Thursday 8:30 AM or Friday 10:00 AM for coffee?", tag: "A2A" },
+            { id: "r5", at: 6000, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "Lena is free Thursday 8:30 or Friday 10:00 for coffee. Which works better for you?" },
+            { id: "r6", at: 7300, channel: "phoneB", kind: "human_message", actor: "Noah", text: "Thursday 8:30 works for me." },
+            { id: "r7", at: 8600, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah picked Thursday 8:30 AM.", tag: "A2A" },
+            { id: "r8", at: 9800, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "From Lena's saved preferences: she likes cozy cafes with good pastries and low noise.", tag: "A2A" },
+            { id: "r9", at: 11100, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah's preferences show matcha and specialty pour-over interest. He also avoids crowded chains.", tag: "A2A" },
+            { id: "r10", at: 12400, channel: "ops", kind: "background_task", actor: "Atlas", text: "Combining both preference signals with wait time, travel time, and seating reliability.", tag: "Task" },
+            { id: "r11", at: 13700, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Noah chose Thursday 8:30. Based on both of your preferences, Groundline Coffee fits best. Should I lock it in?" },
+            { id: "r12", at: 15000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Yes, lock it in." },
+            { id: "r13", at: 16200, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Confirmed by Lena. Finalizing calendar blocks and venue notes.", tag: "A2A" },
+            { id: "r14", at: 17400, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Done. Coffee is set for Thursday 8:30 at Groundline." },
+            { id: "r15", at: 18600, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "All set. Coffee with Lena is confirmed and on your calendar." }
+          ]
+        },
+        dinner: {
+          subtitle: "Three-person dinner coordination with natural back-and-forth confirmations.",
+          events: [
+            { id: "d1", at: 1000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Can you coordinate a dinner for me, Noah, and Mia this week?" },
+            { id: "d2", at: 2200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Yes. I will coordinate with the other assistants and send the best option." },
+            { id: "d3", at: 3500, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris/Pulse", text: "Requesting availability, budget range, and dietary constraints.", tag: "A2A" },
+            { id: "d4", at: 4800, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah can do Friday after 7 PM. Vegetarian preference.", tag: "A2A" },
+            { id: "d5", at: 5900, channel: "ops", kind: "agent_to_agent", actor: "Pulse -> Atlas", text: "Mia can do Friday after 7 PM. Budget target under $45.", tag: "A2A" },
+            { id: "d7", at: 7000, channel: "ops", kind: "background_task", actor: "Atlas", text: "Scoring options with travel-time fairness and menu constraints.", tag: "Task" },
+            { id: "d8", at: 8300, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "Group dinner option is Friday 7:30 PM in Midtown. Are you in?" },
+            { id: "d9", at: 9600, channel: "phoneB", kind: "human_message", actor: "Noah", text: "Yes, that works for me." },
+            { id: "d10", at: 10800, channel: "phoneC", kind: "agent_message", actor: "Pulse", text: "Dinner plan is Friday 7:30 PM in Midtown. Does that work for you?" },
+            { id: "d11", at: 12000, channel: "phoneC", kind: "human_message", actor: "Mia", text: "Yes, I can make that." },
+            { id: "d12", at: 13200, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah confirmed the Friday option.", tag: "A2A" },
+            { id: "d13", at: 14400, channel: "ops", kind: "agent_to_agent", actor: "Pulse -> Atlas", text: "Mia confirmed the Friday option.", tag: "A2A" },
+            { id: "d14", at: 15600, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Noah and Mia are both confirmed. Finalize Friday 7:30?" },
+            { id: "d15", at: 16800, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Finalize it." },
+            { id: "d16", at: 18000, channel: "ops", kind: "status", actor: "Atlas", text: "Dinner confirmed for Lena, Noah, and Mia. Logistics shared.", tag: "Complete" },
+            { id: "d17", at: 19200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Done. Dinner is booked and everyone has details." },
+            { id: "d18", at: 20400, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "Confirmed. Dinner is on your calendar for Friday 7:30 PM." },
+            { id: "d19", at: 21600, channel: "phoneC", kind: "agent_message", actor: "Pulse", text: "You're all set. Dinner is confirmed and on your calendar." }
+          ]
+        },
+        surprise: {
+          subtitle: "Atlas and Iris coordinate engagement ring preferences discreetly while Noah stays unaware.",
+          events: [
+            { id: "s1", at: 1000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Help me discreetly plan an engagement ring for Noah." },
+            { id: "s2", at: 2200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "I can do that. I will coordinate privately and keep the process discreet." },
+            { id: "s3", at: 3500, channel: "ops", kind: "background_task", actor: "Atlas", text: "Opening confidential thread with secrecy safeguards.", tag: "Task" },
+            { id: "s4", at: 4700, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Requesting anonymized jewelry preference profile and size confidence.", tag: "A2A" },
+            { id: "s5", at: 6000, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Profile: classic solitaire leaning, white-gold preference, size confidence medium-high.", tag: "A2A" },
+            { id: "s8", at: 9700, channel: "ops", kind: "background_task", actor: "Atlas", text: "Matching ring inventory by style, delivery speed, and budget.", tag: "Task" },
+            { id: "s9", at: 10900, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Candidate selected. Confirming fit-risk and exchange policy quality.", tag: "A2A" },
+            { id: "s10", at: 12100, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Fit risk acceptable. Exchange policy strong. No ring-related outreach to Noah.", tag: "A2A" },
+            { id: "s11", at: 13300, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Here is the top ring option I found.", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='360' viewBox='0 0 560 360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23192034'/%3E%3Cstop offset='1' stop-color='%233b2a59'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='560' height='360' rx='28' fill='url(%23g)'/%3E%3Cellipse cx='280' cy='265' rx='130' ry='34' fill='%23000000' opacity='0.25'/%3E%3Cpath d='M190 228c0 45 40 82 90 82s90-37 90-82' stroke='%23d8dbe7' stroke-width='20' fill='none'/%3E%3Cpath d='M220 115l60-58 60 58-20 56h-80z' fill='%23e7ecff' opacity='0.98'/%3E%3Cpath d='M280 58v113M220 115h120M246 87l34 84M314 87l-34 84' stroke='%23b7c0df' stroke-width='5' opacity='0.7'/%3E%3Ctext x='280' y='332' text-anchor='middle' fill='%23e8eaf6' font-size='22' font-family='Arial,sans-serif'%3ERound%20solitaire%20-%20White%20gold%3C/text%3E%3C/svg%3E" },
+            { id: "s12", at: 14500, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Top option is ready at $4,800 with 48-hour delivery. Want me to place a private hold?" },
+            { id: "s13", at: 15700, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Yes, place the hold." },
+            { id: "s14", at: 16900, channel: "ops", kind: "status", actor: "Atlas", text: "Ring hold confirmed. Delivery and receipts routed in private mode.", tag: "Complete" },
+            { id: "s15", at: 18100, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Done. The ring is secured and Noah has not been notified." }
+          ]
+        }
+      };
+
+      const state = {
+        scenarioId: "coffee",
+        elapsedMs: 0,
+        playing: false,
+        speed: 0.75,
+        runtimeEvents: [],
+        activeLanes: [],
+        opsOpen: false
+      };
+
+      const TIMING_CONFIG = {
+        scale: 1.35,
+        minGapMs: 1200
+      };
+
+      const dom = {
+        layoutGrid: document.getElementById("layout-grid"),
+        opsPanel: document.getElementById("ops-panel"),
+        opsContent: document.getElementById("ops-content"),
+        scenarioSelect: document.getElementById("scenario-select"),
+        toggleOpsBtn: document.getElementById("toggle-ops-btn"),
+        playBtn: document.getElementById("play-btn"),
+        rightPhones: document.getElementById("right-phones"),
+        phoneBShell: document.getElementById("phone-b-shell"),
+        phoneBFrame: document.getElementById("phone-b-frame"),
+        phoneCShell: document.getElementById("phone-c-shell"),
+        phoneAChat: document.getElementById("phone-a-chat"),
+        phoneBChat: document.getElementById("phone-b-chat"),
+        phoneCChat: document.getElementById("phone-c-chat"),
+        opsLanes: document.getElementById("ops-lanes")
+      };
+
+      const LANE_META = {
+        atlas: { label: "Atlas", dotClass: "dot-atlas" },
+        iris: { label: "Iris", dotClass: "dot-iris" },
+        pulse: { label: "Pulse", dotClass: "dot-pulse" },
+        beacon: { label: "Beacon", dotClass: "dot-beacon" }
+      };
+
+      function laneForEvent(event) {
+        const actor = event.actor || "";
+        const sender = actor.includes("->") ? actor.split("->")[0].trim() : actor;
+        if (sender.includes("Atlas")) return "atlas";
+        if (sender.includes("Iris")) return "iris";
+        if (sender.includes("Pulse")) return "pulse";
+        if (sender.includes("Beacon")) return "beacon";
+        return "atlas";
+      }
+
+      function laneNode(laneKey) {
+        return document.getElementById("lane-" + laneKey);
+      }
+
+      function relevantLanesForScenario() {
+        const opsEvents = currentScenario().events.filter((event) => event.channel === "ops");
+        const detected = new Set();
+        for (const event of opsEvents) {
+          detected.add(laneForEvent(event));
+        }
+        const ordered = ["atlas", "iris", "pulse", "beacon"];
+        const lanes = ordered.filter((lane) => detected.has(lane));
+        return lanes.length > 0 ? lanes : ["atlas"];
+      }
+
+      function renderOpsScaffold() {
+        dom.opsLanes.innerHTML = "";
+
+        const lanes = state.activeLanes;
+        const isDinnerScenario = state.scenarioId === "dinner";
+        const laneMinWidth = isDinnerScenario ? 140 : 170;
+        dom.opsLanes.style.gridTemplateColumns = "repeat(" + lanes.length + ", minmax(" + laneMinWidth + "px, 1fr))";
+        dom.opsLanes.style.overflowX = isDinnerScenario ? "hidden" : "auto";
+
+        for (const laneKey of lanes) {
+          const meta = LANE_META[laneKey];
+
+          const lane = document.createElement("div");
+          lane.className = "lane";
+          lane.innerHTML =
+            '<div class="lane-head"><span class="legend-dot ' +
+            meta.dotClass +
+            '"></span>' +
+            meta.label +
+            '</div><div class="lane-feed" id="lane-' +
+            laneKey +
+            '"></div>';
+          dom.opsLanes.appendChild(lane);
+        }
+      }
+
+      function currentScenario() {
+        return scenarios[state.scenarioId];
+      }
+
+      function resetScenario() {
+        const baseEvents = paceBaseEvents(currentScenario().events.map((e) => ({ ...e })));
+        state.runtimeEvents = baseEvents;
+        state.activeLanes = relevantLanesForScenario();
+        state.elapsedMs = 0;
+        state.playing = false;
+        renderOpsScaffold();
+        render();
+      }
+
+      function paceBaseEvents(events) {
+        const sorted = events.slice().sort((a, b) => a.at - b.at);
+        let prevAt = 0;
+        return sorted.map((event, idx) => {
+          const scaledAt = Math.round(event.at * TIMING_CONFIG.scale);
+          const at = idx === 0 ? scaledAt : Math.max(scaledAt, prevAt + TIMING_CONFIG.minGapMs);
+          prevAt = at;
+          return { ...event, at };
+        });
+      }
+
+      function visibleEvents() {
+        return state.runtimeEvents.filter((e) => e.at <= state.elapsedMs).sort((a, b) => a.at - b.at);
+      }
+
+      function totalEnd() {
+        let max = 0;
+        for (const e of state.runtimeEvents) {
+          if (e.at > max) max = e.at;
+        }
+        return max + 1000;
+      }
+
+      function chipClass(tag) {
+        if (tag === "A2A") return "chip a2a";
+        if (tag === "Approval") return "chip approval";
+        if (tag === "Complete") return "chip complete";
+        return "chip";
+      }
+
+      function renderPhone(chatNode, events) {
+        chatNode.innerHTML = "";
+        if (events.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "empty";
+          empty.textContent = "No messages yet.";
+          chatNode.appendChild(empty);
+          return;
+        }
+
+        for (const event of events) {
+          const bubble = document.createElement("div");
+          let bubbleClass = "bubble ";
+          if (event.kind === "human_message") {
+            bubbleClass += "human";
+          } else {
+            bubbleClass += "agent";
+          }
+          if (event.kind === "approval_request") bubbleClass += " approval";
+          bubble.className = bubbleClass;
+
+          const text = document.createElement("div");
+          text.textContent = event.text;
+          if (event.image) {
+            const image = document.createElement("img");
+            image.className = "bubble-image";
+            image.src = event.image;
+            image.alt = "Ring option preview";
+            bubble.appendChild(image);
+          }
+          bubble.appendChild(text);
+
+          chatNode.appendChild(bubble);
+        }
+
+        chatNode.scrollTop = chatNode.scrollHeight;
+      }
+
+      function renderOps(events) {
+        const lanes = state.activeLanes;
+        lanes.forEach((key) => {
+          const node = laneNode(key);
+          if (node) node.innerHTML = "";
+        });
+
+        if (events.length === 0) {
+          lanes.forEach((key) => {
+            const empty = document.createElement("p");
+            empty.className = "lane-empty";
+            empty.textContent = "No activity yet";
+            const node = laneNode(key);
+            if (node) node.appendChild(empty);
+          });
+          return;
+        }
+
+        for (const event of events) {
+          const item = document.createElement("div");
+          item.className = "event";
+
+          const text = document.createElement("div");
+          text.className = "event-text";
+          text.textContent = event.text;
+          item.appendChild(text);
+
+          const meta = document.createElement("div");
+          meta.className = "event-meta";
+          meta.textContent = event.actor + " · ";
+          const chip = document.createElement("span");
+          chip.className = chipClass(event.tag || "Task");
+          chip.textContent = event.tag || "Task";
+          meta.appendChild(chip);
+          item.appendChild(meta);
+
+          const targetLane = laneForEvent(event);
+          if (lanes.includes(targetLane)) {
+            const node = laneNode(targetLane);
+            if (node) node.appendChild(item);
+          }
+        }
+
+        lanes.forEach((key) => {
+          const lane = laneNode(key);
+          if (lane) lane.scrollTop = lane.scrollHeight;
+        });
+      }
+
+      function render() {
+        const events = visibleEvents();
+
+        const phoneAEvents = events.filter((e) => e.channel === "phoneA");
+        const phoneBEvents = events.filter((e) => e.channel === "phoneB");
+        const phoneCEvents = events.filter((e) => e.channel === "phoneC");
+        const opsEvents = events.filter((e) => e.channel === "ops");
+        const isDinnerScenario = state.scenarioId === "dinner";
+
+        renderPhone(dom.phoneAChat, phoneAEvents);
+        renderPhone(dom.phoneBChat, phoneBEvents);
+        renderPhone(dom.phoneCChat, phoneCEvents);
+
+        dom.phoneCShell.style.display = isDinnerScenario ? "block" : "none";
+        dom.phoneBShell.classList.toggle("compact", isDinnerScenario);
+        dom.phoneBFrame.classList.toggle("compact", isDinnerScenario);
+        dom.rightPhones.classList.toggle("three-user-mode", isDinnerScenario);
+
+        if (state.opsOpen) {
+          renderOps(opsEvents);
+        }
+        dom.opsContent.style.display = state.opsOpen ? "flex" : "none";
+        dom.layoutGrid.style.gridTemplateColumns = state.opsOpen
+          ? (state.scenarioId === "dinner"
+              ? "minmax(0, 0.9fr) minmax(0, 1.45fr) minmax(0, 0.9fr)"
+              : "minmax(0, 1fr) minmax(0, 1.08fr) minmax(0, 1fr)")
+          : "auto auto auto";
+        dom.layoutGrid.style.justifyContent = state.opsOpen ? "stretch" : "center";
+        dom.layoutGrid.style.gap = state.opsOpen ? "0px" : "20px";
+        dom.toggleOpsBtn.textContent = state.opsOpen ? "Hide Agent Coordination" : "Agent Coordination";
+        dom.playBtn.textContent = state.playing ? "Pause" : "Play";
+      }
+
+      dom.scenarioSelect.addEventListener("change", (e) => {
+        state.scenarioId = e.target.value;
+        resetScenario();
+      });
+
+      dom.toggleOpsBtn.addEventListener("click", () => {
+        state.opsOpen = !state.opsOpen;
+        render();
+      });
+
+      dom.playBtn.addEventListener("click", () => {
+        state.playing = !state.playing;
+        render();
+      });
+
+      setInterval(() => {
+        if (!state.playing) return;
+        state.elapsedMs += 100 * state.speed;
+        if (state.elapsedMs >= totalEnd()) state.playing = false;
+        render();
+      }, 100);
+
+      resetScenario();
+    </script>
+  </body>
+</html>
