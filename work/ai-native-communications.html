@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Native Communications · Ji Seo</title>
+  <script src="../assets/gate.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <style>
+    .reframe {
+      margin-top: var(--space-3);
+      max-width: var(--reading);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .reframe-old {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--ink-faint);
+      text-decoration: line-through;
+      text-decoration-color: var(--ink-faint);
+      text-decoration-thickness: 1px;
+      line-height: 1.5;
+    }
+    .reframe-new {
+      font-family: var(--serif);
+      font-size: 1.45rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1.4;
+      letter-spacing: -0.005em;
+    }
+    .reframe-new em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .research-card.highlight {
+      position: relative;
+      background: var(--accent-light);
+    }
+    .research-card .traction-tag {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .research-card .example {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-faint);
+      line-height: 1.55;
+    }
+    .research-card.highlight .example {
+      border-top-color: rgba(26, 122, 69, 0.25);
+      color: var(--ink-muted);
+    }
+
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: var(--space-3);
+    }
+    .compare-card {
+      padding: 24px 22px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .compare-card.featured {
+      background: var(--accent-light);
+      border-color: transparent;
+    }
+    .compare-card .tag {
+      font-family: var(--serif);
+      font-size: 13px;
+      font-style: italic;
+      color: var(--ink-faint);
+      margin-bottom: 12px;
+    }
+    .compare-card.featured .tag { color: var(--accent); }
+    .compare-card h4 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 1.25rem;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+    .compare-card p {
+      font-size: 14px;
+      color: var(--ink-muted);
+      line-height: 1.7;
+    }
+    .compare-card p strong { color: var(--ink); font-weight: 500; }
+    @media (max-width: 720px) {
+      .compare-row { grid-template-columns: 1fr; }
+    }
+
+    .proto-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: var(--space-3);
+      padding: 14px 24px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .proto-button:hover { opacity: 0.9; transform: translateY(-1px); }
+    .proto-button .arrow { transition: transform 0.2s; display: inline-block; }
+    .proto-button:hover .arrow { transform: translateX(4px); }
+
+    .question-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: var(--space-3);
+      max-width: var(--reading);
+    }
+    .question-pill {
+      display: inline-block;
+      font-size: 13.5px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+      line-height: 1.4;
+    }
+
+    .section-mini-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-top: var(--space-4);
+      margin-bottom: 12px;
+    }
+
+    .proto-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+    }
+    .proto-overlay.open { display: flex; }
+    .proto-overlay-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 12px 20px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #2A2A28;
+    }
+    .proto-close {
+      background: none;
+      border: 1px solid #2A2A28;
+      color: #A8A7A3;
+      font-size: 13px;
+      padding: 7px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: all 0.2s;
+    }
+    .proto-close:hover { border-color: #706E66; color: #fff; }
+    .proto-overlay iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #0a0a08;
+    }
+  </style>
+</head>
+<body data-screen-label="01 AI-Native Communications">
+
+  <header class="site-nav">
+    <a class="logo" href="../index.html">Ji Seo, Product Designer</a>
+    <ul>
+      <li><a href="../index.html">Work</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../contact.html">Contact</a></li>
+      <li><a class="resume-btn" href="../assets/Ji_Seo_resume_2026.pdf" download>Résumé ↓</a></li>
+    </ul>
+  </header>
+  <div class="progress-bar"></div>
+
+  <main class="case-wrap">
+
+    <section class="case-hero">
+      <div class="crumbs"><a href="../index.html">Work</a> / AI-Native Communications</div>
+      <div class="hero-eyebrow">
+        <span class="chip accent">Strategic exploration</span>
+        <span class="chip">Meta · Wearables</span>
+        <span class="chip">2026</span>
+      </div>
+      <h1>AI-Native<br/><em>Communications</em>.</h1>
+      <p class="lede">
+        An internal exploration into what calling, messaging, and presence look like
+        when AI is at the core of communication, not a feature added on top.
+      </p>
+      <div class="case-meta">
+        <div class="item"><div class="k">Role</div><div class="v">Senior Product Designer</div></div>
+        <div class="item"><div class="k">Team</div><div class="v">2 product designers</div></div>
+        <div class="item"><div class="k">Scope</div><div class="v">Full comms surface</div></div>
+        <div class="item"><div class="k">Type</div><div class="v">Strategic exploration</div></div>
+      </div>
+    </section>
+
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">01</span><span class="section-label">Setup</span></div>
+      <h2>Setting up <em>context</em>.</h2>
+      <div class="body">
+        <p><strong>The project.</strong> An internal exploration into what communications could look like when AI is at the core: what happens to calling, messaging, and presence in a world where AI is native, not added on.</p>
+        <p><strong>My scope.</strong> Just two designers, covering the entire comms surface: messaging, calling, contacts, presence. No brief beyond the core question. Since this was an exploration sprint, all constraints were intentionally lifted.</p>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">02</span><span class="section-label">Problem definition</span></div>
+      <h2>The brief <em>was the problem</em>.</h2>
+      <div class="reframe">
+        <div class="reframe-old">How do we add AI to our communications apps?</div>
+        <div class="reframe-new">What does communication look like when AI is <em>first-class</em>, and no longer organized around apps?</div>
+      </div>
+      <div class="body" style="margin-top: var(--space-3);">
+        <p>Before designing anything, I had to understand what communication fundamentally <em>is</em> underneath the app layer. What is a phone call? What job is a user trying to do, before apps were the answer to that job?</p>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">03</span><span class="section-label">Design process</span></div>
+      <h2>Concepts, <em>not screens</em>.</h2>
+      <div class="approach-list">
+        <div class="approach-step">
+          <div class="n">i.</div>
+          <div>
+            <h4>Deconstructed the fundamental intent</h4>
+            <p>Of calling and messaging: what they exist to do for users, stripped of any product layer.</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">ii.</div>
+          <div>
+            <h4>Mapped the behavioral shift required</h4>
+            <p>Moving from &ldquo;open an app&rdquo; to a free-flowing conversation with an AI. UX must shift from navigating interfaces to declaring intent.</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">iii.</div>
+          <div>
+            <h4>Made the primary artifact a Google Doc</h4>
+            <p>Working in screens too early anchors you to the wrong level of abstraction.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">04</span><span class="section-label">Framework</span></div>
+      <h2>Four levels of <em>AI participation</em>.</h2>
+      <div class="research-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="research-card">
+          <div class="num">Level 01</div>
+          <h4>Direct Connection</h4>
+          <p>AI just opens the pipe and gets out of the way. It acts only as a voice-activated dialer. AI&rsquo;s role in communication today.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">Level 02</div>
+          <h4>Background Assist</h4>
+          <p>The user is in the conversation, AI is passively monitoring and surfacing context.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">Level 03</div>
+          <h4>Negotiated Handoff</h4>
+          <p>AI handles the setup, screening, and coordination, then hands off to the user for the live conversation.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">Level 04</div>
+          <h4>Full Delegation</h4>
+          <p>AI handles the entire interaction end-to-end, user is never involved live. Notifies user after task has completed.</p>
+        </div>
+      </div>
+      <div style="margin-top: var(--space-5);">
+        <div class="section-mini-label" style="margin-top: 0;">Feature</div>
+        <p style="font-family: var(--serif); font-size: 1.5rem; font-weight: 300; color: var(--ink); letter-spacing: -0.01em; line-height: 1.3; margin-bottom: 12px;">Message Smart Reply</p>
+      </div>
+      <img src="../images/levels_no background.png" alt="Four levels of AI participation illustrated across Direct Connection, Background Assist, Negotiated Handoff, and Full Delegation" style="width: 100%; margin-top: var(--space-3); border-radius: var(--radius);" />
+      <div class="body" style="margin-top: var(--space-4);">
+        <p>We mapped hero use cases to the levels and something useful surfaced: each feature had a level of AI participation that felt right — and it wasn&rsquo;t always Full Delegation. The framework gave us a way to evaluate that, rather than default to maximum AI everywhere.</p>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">05</span><span class="section-label">Reflection</span></div>
+      <h2>The hard questions <em>still open</em>.</h2>
+      <div class="research-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="research-card">
+          <div class="num">i.</div>
+          <h4>Relationships are complex</h4>
+          <p>To get this right, agents need to map the <strong>nuances of how people relate to one another</strong>: not just who you&rsquo;re talking to, but how. That&rsquo;s a much harder modeling problem than a contact list.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">ii.</div>
+          <h4>Social intelligence</h4>
+          <p>Etiquette, emotional cues, reading the room. <strong>Are our agents intelligent enough to factor these in?</strong> And if they&rsquo;re not, we need to design around that gap, not past it.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">iii.</div>
+          <h4>Safety and privacy</h4>
+          <p>For any of this to work at scale, users have to trust the agent isn&rsquo;t doing <strong>more than they sanctioned.</strong> That&rsquo;s not a legal checkbox; it&rsquo;s a design challenge.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">iv.</div>
+          <h4>The social profile problem</h4>
+          <p>A profile may not be a simple list. To truly capture someone&rsquo;s social comfort, it may need to be <strong>far more complex and dynamic</strong> than anything we&rsquo;ve designed before.</p>
+        </div>
+      </div>
+      <div class="case-callout" style="margin-top: var(--space-4);">
+        <p>What does it actually mean to represent someone&rsquo;s relationships faithfully enough for an agent to act on their behalf?</p>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">06</span><span class="section-label">Outcome</span></div>
+      <h2>Vocabulary <em>and direction</em>.</h2>
+      <div class="approach-list">
+        <div class="approach-step">
+          <div class="n">→</div>
+          <div>
+            <h4>This didn&rsquo;t ship</h4>
+            <p>It was an exploration sprint. The point was never to launch a product, but to start thinking differently about the communication feature space.</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">◆</div>
+          <div>
+            <h4>It created focus for real workstreams</h4>
+            <p>What started as concepts, xfn teams began breaking down into scoped workstreams with real timelines and resourcing conversations.</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">◆</div>
+          <div>
+            <h4>It became a classification tool for the whole comms surface</h4>
+            <p>Teams started mapping existing and proposed features to the four levels &mdash; finding common ground on where each feature sat and which level was actually worth pursuing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="case-nav">
+      <a href="sr-branding.html">
+        <div class="k">Previous</div>
+        <div class="t">← SR_ Branding</div>
+      </a>
+      <a class="next" href="unified-inbox.html">
+        <div class="k">Next</div>
+        <div class="t">Unified Inbox →</div>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Get in touch</h4>
+        <p class="big">Let&rsquo;s <em>talk</em>.</p>
+        <p style="color: var(--ink-muted); max-width: 360px; font-size: 14px;">
+          Currently open to new work and collaboration.<br/>
+          Always happy to chat about design and technology.
+        </p>
+      </div>
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="../index.html">Work</a></li>
+          <li><a href="../about.html">About</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Elsewhere</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/jiseo/" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Reach</h4>
+        <ul>
+          <li><a href="mailto:jiseo@gmail.com">jiseo@gmail.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copy">
+      <span>© 2026 Ji Seo · All things beautiful</span>
+      <span>Made in New York</span>
+    </div>
+  </footer>
+
+  <div class="proto-overlay" id="protoOverlay">
+    <div class="proto-overlay-bar">
+      <button class="proto-close" onclick="closeProto()">✕ Close</button>
+    </div>
+    <iframe id="protoFrame" src="" allowfullscreen></iframe>
+  </div>
+
+    <script src="../assets/site.js"></script>
+  <script>
+    function openProto(e) {
+      e.preventDefault();
+      document.getElementById('protoFrame').src = 'ai-native-prototype.html';
+      document.getElementById('protoOverlay').classList.add('open');
+    }
+
+    function closeProto() {
+      document.getElementById('protoOverlay').classList.remove('open');
+      document.getElementById('protoFrame').src = '';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeProto();
+    });
+  </script>
+</body>
+</html>
