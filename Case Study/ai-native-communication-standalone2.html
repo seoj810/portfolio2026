@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Native Communications — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A08;
+    --bg2: #111110;
+    --bg3: #1A1A18;
+    --text: #EDEAE0;
+    --muted: #706E66;
+    --faint: #2A2A28;
+    --accent: #C8A96E;
+    --accent2: #4ECDC4;
+    --danger: #E07070;
+    --serif: 'Fraunces', 'Newsreader', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .deck {
+    width: 100%; height: 100%;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 80px 100px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Nav */
+  .nav {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    z-index: 100;
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: var(--accent);
+    width: 20px;
+    border-radius: 3px;
+  }
+
+  .nav-btn {
+    background: none;
+    border: 1px solid var(--faint);
+    color: var(--muted);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  .slide-counter {
+    position: fixed;
+    top: 36px;
+    right: 48px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-weight: 300;
+  }
+
+  /* ── Typography ── */
+  .label {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .display {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(48px, 6vw, 88px);
+    line-height: 1.05;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .display em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .headline {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 1.1;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 32px;
+  }
+
+  .headline em { font-style: italic; color: var(--accent); }
+
+  .body {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: clamp(15px, 1.4vw, 18px);
+    line-height: 1.7;
+    color: #A8A59A;
+    max-width: 640px;
+  }
+
+  .body strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .rule {
+    width: 40px; height: 1px;
+    background: var(--accent);
+    margin-bottom: 32px;
+  }
+
+  /* ── Slide 1: Cover ── */
+  #s1 { background: var(--bg); }
+  #s1 .meta-tag {
+    position: absolute;
+    top: 36px; left: 100px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #s1 .meta-tag span {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  #s1 .cover-content { max-width: 800px; }
+  #s1 .byline {
+    margin-top: 48px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  #s1 .byline-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  #s1 .byline-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+  #s1 .byline-val {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 400;
+  }
+  #s1 .byline-divider {
+    width: 1px; height: 32px;
+    background: var(--faint);
+  }
+
+
+  /* ── Slide 2: Setup ── */
+  #s2 .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    width: 100%;
+    max-width: 900px;
+    margin-top: 40px;
+  }
+  #s2 .col-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-weight: 300;
+  }
+  #s2 .col-text {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #A8A59A;
+    font-weight: 300;
+  }
+  #s2 .col-text strong { color: var(--text); font-weight: 500; }
+
+  /* ── Slide 3: Reframe ── */
+  #s3 { background: var(--bg); }
+  #s3 .reframe-block {
+    padding-left: 0;
+    margin: 40px 0;
+    max-width: 700px;
+  }
+  #s3 .reframe-old,
+  #s3 .reframe-new {
+    font-family: var(--sans);
+    font-size: clamp(15px, 1.4vw, 18px);
+    font-weight: 300;
+    line-height: 1.7;
+  }
+  #s3 .reframe-old {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--muted);
+    text-decoration-thickness: 1px;
+    margin-bottom: 20px;
+  }
+  #s3 .reframe-new {
+    color: #A8A59A;
+  }
+  #s3 .reframe-new em { color: var(--accent); font-style: italic; }
+  #s3 .body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #A8A59A;
+    font-weight: 300;
+    font-family: var(--sans);
+    max-width: 640px;
+    margin-top: 32px;
+  }
+  #s3 .body em { font-style: italic; color: var(--text); }
+
+  /* ── Slide 4: Process ── */
+  #s4 .process-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 40px;
+    max-width: 680px;
+  }
+  #s4 .step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  #s4 .step-num {
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-weight: 400;
+    width: 20px;
+  }
+  #s4 .step-text {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #A8A59A;
+    font-weight: 300;
+  }
+  #s4 .step-text strong { color: var(--text); font-weight: 500; }
+  #s4 .aside {
+    position: absolute;
+    top: 80px; right: 100px;
+    max-width: 220px;
+    text-align: right;
+  }
+  #s4 .aside-text {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── Slide 5: Four Levels ── */
+  #s5 { padding: 60px 80px; }
+  #s5 .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    width: 100%;
+    margin-top: 36px;
+  }
+  #s5 .level-card {
+    border: 1px solid var(--faint);
+    border-radius: 12px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  #s5 .level-card.highlight {
+    border-color: var(--accent);
+    background: rgba(200, 169, 110, 0.04);
+  }
+  #s5 .level-card .lnum {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+  #s5 .level-card .ltitle {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  #s5 .level-card.highlight .ltitle { color: var(--accent); }
+  #s5 .level-card .lrole {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+  #s5 .level-card .lexample {
+    font-size: 12px;
+    color: #706E66;
+    line-height: 1.6;
+    font-style: italic;
+    border-top: 1px solid var(--faint);
+    padding-top: 12px;
+    margin-top: auto;
+    font-family: var(--serif);
+  }
+  #s5 .spectrum {
+    width: 100%;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #s5 .spectrum-bar { display: none; }
+  #s5 .spectrum-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    white-space: nowrap;
+    font-weight: 300;
+    text-transform: uppercase;
+  }
+  #s5 .traction-tag { display: none; }
+
+  /* ── Slide 6: Full Delegation ── */
+  #s6 .fd-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 820px;
+    margin-top: 40px;
+  }
+  #s6 .fd-card {
+    border: 1px solid var(--faint);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  #s6 .fd-card.active { border-color: var(--accent); background: rgba(200, 169, 110, 0.04); }
+  #s6 .fd-tag {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-weight: 300;
+  }
+  #s6 .fd-card.active .fd-tag { color: var(--accent); }
+  #s6 .fd-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  #s6 .fd-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #A8A59A;
+    font-weight: 300;
+  }
+  #s6 .fd-insight {
+    margin-top: 32px;
+    max-width: 680px;
+    padding: 0;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  #s6 .fd-insight em { color: var(--text); font-style: normal; }
+
+  /* ── Slide 7: Prototype ── */
+  #s7 .proto-content {
+    max-width: 680px;
+    margin-top: 40px;
+  }
+  #s7 .proto-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  #s7 .pill {
+    border: 1px solid var(--faint);
+    border-radius: 99px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+  #s7 .pill.lit {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(200, 169, 110, 0.06);
+  }
+
+  /* ── Slide 8: Reflection ── */
+  #s8 .reflect-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 820px;
+    margin-top: 40px;
+  }
+  #s8 .rcard {
+    border: 1px solid var(--faint);
+    border-radius: 10px;
+    padding: 22px;
+  }
+  #s8 .rcard-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 400;
+  }
+  #s8 .rcard-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #A8A59A;
+    font-weight: 300;
+  }
+  #s8 .rcard-text strong { color: var(--text); font-weight: 500; }
+  #s8 .open-q {
+    margin-top: 32px;
+    max-width: 680px;
+    font-family: var(--serif);
+    font-size: clamp(16px, 1.6vw, 20px);
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+    border-left: 2px solid var(--accent);
+    padding-left: 20px;
+  }
+
+  /* ── Slide 9: Outcome ── */
+  #s9 .outcome-items {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 40px;
+    max-width: 680px;
+  }
+  #s9 .outcome-item {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--faint);
+  }
+  #s9 .outcome-item:last-child { }
+  #s9 .out-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--faint);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  #s9 .out-icon.lit { border-color: var(--accent); color: var(--accent); }
+  #s9 .out-body {}
+  #s9 .out-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  #s9 .out-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #A8A59A;
+    font-weight: 300;
+  }
+
+  /* ── Proto button (Slide 7) ── */
+  #s7 .proto-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  #s7 .proto-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide.active .anim-in {
+    animation: fadeUp 0.5s ease forwards;
+  }
+  .slide.active .anim-in:nth-child(2) { animation-delay: 0.1s; }
+  .slide.active .anim-in:nth-child(3) { animation-delay: 0.2s; }
+  .slide.active .anim-in:nth-child(4) { animation-delay: 0.3s; }
+  .slide.active .anim-in:nth-child(5) { animation-delay: 0.4s; }
+
+  .slide:not(.active) .anim-in { opacity: 0; }
+
+  /* Prototype overlay */
+  .proto-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+  }
+  .proto-overlay.open { display: flex; }
+  .proto-overlay-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px 20px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #2A2A28;
+  }
+  .proto-close {
+    background: none;
+    border: 1px solid #2A2A28;
+    color: #706E66;
+    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .proto-close:hover { border-color: #706E66; color: #EDEAE0; }
+  .proto-overlay iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <!-- Slide 1: Cover -->
+  <div class="slide" id="s1">
+    <div class="meta-tag anim-in">
+      <span>Meta Wearables · Design Exploration</span>
+    </div>
+    <div class="cover-content">
+      <div class="label anim-in">Case Study</div>
+      <div class="display anim-in">
+        AI-Native<br><em>Communications</em>
+      </div>
+      <div class="byline anim-in">
+        <div class="byline-item">
+          <span class="byline-label">Scope</span>
+          <span class="byline-val">Full comms surface</span>
+        </div>
+        <div class="byline-divider"></div>
+        <div class="byline-item">
+          <span class="byline-label">Team</span>
+          <span class="byline-val">2 product designers</span>
+        </div>
+        <div class="byline-divider"></div>
+        <div class="byline-item">
+          <span class="byline-label">Type</span>
+          <span class="byline-val">Strategic exploration</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2: Setup -->
+  <div class="slide" id="s2">
+    <div class="label anim-in">01 — Setup</div>
+    <div class="headline anim-in">Context<br>and stakes</div>
+    <div class="two-col anim-in">
+      <div>
+        <div class="col-label">The project</div>
+        <div class="col-text">An internal exploration into what communications could look like when AI is at the core — <strong>what happens to calling, messaging, and presence</strong> in a world where AI is native, not added on.</div>
+      </div>
+      <div>
+        <div class="col-label">My scope</div>
+        <div class="col-text">Just two designers, covering the entire comms surface: messaging, calling, contacts, presence. No brief beyond the core question. Since this was an exploration sprint, all constraints were intentionally lifted.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Problem -->
+  <div class="slide" id="s3">
+    <div class="label anim-in">02 — Problem definition</div>
+    <div class="headline anim-in">The brief<br>was the problem</div>
+    <div class="reframe-block anim-in">
+      <div class="reframe-old">How do we add AI to our communications apps?</div>
+      <div class="reframe-new">
+        What does communication look like when AI is <em>first-class</em> — and when it's no longer organized around apps?
+      </div>
+    </div>
+    <div class="body anim-in">
+      Before designing anything, I had to understand what communication fundamentally <em>is</em> underneath the app layer. What is a phone call? What job is a user trying to do — before apps were the answer to that job?
+    </div>
+  </div>
+
+  <!-- Slide 4: Process -->
+  <div class="slide" id="s4">
+    <div class="label anim-in">03 — Design process</div>
+    <div class="headline anim-in">Concepts,<br>not screens</div>
+    <div class="process-steps anim-in">
+      <div class="step">
+        <div class="step-num">I.</div>
+        <div class="step-text">Deconstructed the fundamental intent of calling and messaging — what they exist to do for users, stripped of any product layer.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">II.</div>
+        <div class="step-text">Mapped the <strong>behavioral shift required</strong>: moving from "open an app" to a free-flowing conversation with an AI. UX must shift from navigating interfaces to declaring intent.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">III.</div>
+        <div class="step-text">The primary design artifact was a Google Doc. <strong>Working in screens too early anchors you to the wrong level of abstraction.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Four Levels -->
+  <div class="slide" id="s5">
+    <div class="label anim-in">03 — Framework</div>
+    <div class="headline anim-in" style="margin-bottom: 40px;">Four levels of<br><em>AI participation</em></div>
+    <div class="levels-grid anim-in">
+      <div class="level-card">
+        <div class="lnum">Level 01</div>
+        <div class="ltitle">Direct Connection</div>
+        <div class="lrole">AI just opens the pipe and gets out of the way. It acts only as a voice-activated dialer. AI's role in communication today.</div>
+        <div class="lexample">"Call Mom on WhatsApp." The assistant dials immediately and gets out of the way.</div>
+      </div>
+      <div class="level-card">
+        <div class="lnum">Level 02</div>
+        <div class="ltitle">Background Assist</div>
+        <div class="lrole">The user is in the conversation, AI is passively monitoring and surfacing context.</div>
+        <div class="lexample">In a group call, the agent cross-references calendars silently and surfaces a "best dates" summary.</div>
+      </div>
+      <div class="level-card">
+        <div class="lnum">Level 03</div>
+        <div class="ltitle">Negotiated Handoff</div>
+        <div class="lrole">AI handles the setup, screening, and coordination, then hands off to the user for the live conversation.</div>
+        <div class="lexample">The agent navigates hold music and transfers. You join when the right person is already on the line.</div>
+      </div>
+      <div class="level-card highlight">
+        <div class="traction-tag">Most traction</div>
+        <div class="lnum">Level 04</div>
+        <div class="ltitle">Full Delegation</div>
+        <div class="lrole">AI handles the entire interaction end-to-end, user is never involved live. Notifies user after task has completed.</div>
+        <div class="lexample">"Get my flight refunded." The agent calls the airline, handles the rep, pings you when it's done.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 6: Full Delegation split -->
+  <div class="slide" id="s6">
+    <div class="label anim-in">04 — The AI layer</div>
+    <div class="headline anim-in">Full Delegation<br>isn't one thing</div>
+    <div class="fd-split anim-in">
+      <div class="fd-card">
+        <div class="fd-tag">04A</div>
+        <div class="fd-title">Agent × Human</div>
+        <div class="fd-desc">The agent interacts with a person on the other end. It must navigate <strong>tone, social etiquette, emotional cues, reading the room</strong> — all the unwritten contracts of human communication.</div>
+      </div>
+      <div class="fd-card active">
+        <div class="fd-tag">04B — Explored further</div>
+        <div class="fd-title">Agent × Agent</div>
+        <div class="fd-desc">The agent interacts with another AI independently. It exchanges information with each other based on the social guidance of their persons. <strong>How can we start to define the rules around agent to agent interactions?</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 7: Prototype -->
+  <div class="slide" id="s7">
+    <div class="label anim-in">04 — Output</div>
+    <div class="headline anim-in">Ended the sprint<br>with a prototype</div>
+    <a class="proto-btn anim-in" href="#" onclick="openProto(event)" style="margin-top: 0; margin-bottom: 32px; text-decoration: none;">
+      View prototype →
+    </a>
+    <div class="proto-content anim-in">
+      <div class="body">
+        The sprint ended with a prototype: a high-level look at what agents do in the background on a user's behalf, and how that gets surfaced back to them.
+      </div>
+      <div class="body" style="margin-top: 28px; margin-bottom: 14px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);">Key design questions</div>
+      <div class="proto-pills">
+        <div class="pill lit">What scenarios are agents most powerful in?</div>
+        <div class="pill lit">How do agents know what's shareable vs. private?</div>
+        <div class="pill lit">When is human consent necessary?</div>
+        <div class="pill lit">How does the user course-correct if the agent is wrong?</div>
+        <div class="pill lit">Should the agent have its own voice and identity?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Reflection -->
+  <div class="slide" id="s8">
+    <div class="label anim-in">05 — Reflection</div>
+    <div class="headline anim-in">The hard questions<br>still open</div>
+    <div class="reflect-grid anim-in">
+      <div class="rcard">
+        <div class="rcard-label">Relationships are complex</div>
+        <div class="rcard-text">To get this right, agents need to map the <strong>nuances of how people relate to one another</strong> — not just who you're talking to, but how. That's a much harder modeling problem than a contact list.</div>
+      </div>
+      <div class="rcard">
+        <div class="rcard-label">Social intelligence</div>
+        <div class="rcard-text">Etiquette, emotional cues, reading the room. <strong>Are our agents intelligent enough to factor these in?</strong> And if they're not, we need to design around that gap — not past it.</div>
+      </div>
+      <div class="rcard">
+        <div class="rcard-label">Safety and privacy</div>
+        <div class="rcard-text">For any of this to work at scale, users have to trust the agent isn't doing <strong>more than they sanctioned.</strong> That's not a legal checkbox — it's a design challenge.</div>
+      </div>
+      <div class="rcard">
+        <div class="rcard-label">The social profile problem</div>
+        <div class="rcard-text">A profile may not be a simple list. To truly capture someone's social comfort, it may need to be <strong>far more complex and dynamic</strong> than anything we've designed before.</div>
+      </div>
+    </div>
+    <div class="open-q anim-in">
+      What does it actually mean to represent someone's relationships faithfully enough for an agent to act on their behalf?
+    </div>
+  </div>
+
+  <!-- Slide 9: Outcome -->
+  <div class="slide" id="s9">
+    <div class="label anim-in">06 — Outcome</div>
+    <div class="headline anim-in">Vocabulary<br>and direction</div>
+    <div class="outcome-items anim-in">
+      <div class="outcome-item">
+        <div class="out-icon">→</div>
+        <div class="out-body">
+          <div class="out-title">This didn't ship</div>
+          <div class="out-desc">That's the honest answer. This was an exploration. The value was never going to be a launched product — and I want to name that directly.</div>
+        </div>
+      </div>
+      <div class="outcome-item">
+        <div class="out-icon lit">◆</div>
+        <div class="out-body">
+          <div class="out-title">The framework gave the org a shared vocabulary</div>
+          <div class="out-desc">The four levels of AI participation gave teams a way to talk about AI's role in communication that wasn't just "add AI features." It named the design space.</div>
+        </div>
+      </div>
+      <div class="outcome-item">
+        <div class="out-icon lit">◆</div>
+        <div class="out-body">
+          <div class="out-title">Agent-to-agent seeded a real workstream</div>
+          <div class="out-desc">The distinction got picked up and became an active prototype investment area. The exploration gave the org a direction it could act on — which is what good exploratory design should produce.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button class="nav-btn" onclick="go(-1)">←</button>
+  <div class="nav-dots" id="dots"></div>
+  <button class="nav-btn" onclick="go(1)">→</button>
+</div>
+
+<div class="slide-counter" id="counter"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('counter');
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(total - 1, n));
+    slides[current].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    counterEl.textContent = `${String(current + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+  }
+
+  function go(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+  });
+
+  goTo(0);
+</script>
+
+<!-- Prototype Overlay -->
+<div class="proto-overlay" id="protoOverlay">
+  <div class="proto-overlay-bar">
+    <button class="proto-close" onclick="closeProto()">✕ Close</button>
+  </div>
+  <iframe id="protoFrame" src="" allowfullscreen></iframe>
+</div>
+
+<script>
+  const PROTO_HTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent-to-Agent Prototype</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&family=Space+Grotesk:wght@500&display=swap");
+
+      :root {
+        --bg: #0b0c0f;
+        --surface-1: #111317;
+        --surface-2: #15181d;
+        --surface-3: #1b2028;
+        --surface-4: #232a34;
+        --card: #0f0f10;
+        --line: #2a3038;
+        --text: #f2f4f8;
+        --sub: #9ca3af;
+        --blue: #3b82f6;
+        --blue-soft: #172554;
+        --green: #059669;
+        --amber: #f59e0b;
+        --amber-soft: #332701;
+        --chip: #1f2937;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 300;
+        background:
+          radial-gradient(1000px 620px at 8% -12%, rgba(150, 170, 220, 0.08), transparent 62%),
+          radial-gradient(900px 560px at 92% -5%, rgba(120, 150, 220, 0.06), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        padding: 20px 20px 12px;
+        box-shadow: none;
+      }
+
+      .header-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.15;
+        font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .scenario-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .scenario-select {
+        width: 340px;
+        max-width: 100%;
+        padding-right: 44px;
+        font-weight: 500;
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23cbd5e1' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 12px 8px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button,
+      select {
+        border: 1px solid var(--line);
+        background: var(--surface-1);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+
+      button.primary {
+        background: var(--surface-4);
+        border-color: var(--surface-4);
+        color: #e5e7eb;
+      }
+
+      button:hover,
+      select:hover {
+        cursor: pointer;
+        filter: brightness(0.98);
+      }
+
+      .layout {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+        gap: 14px;
+        transform: none;
+      }
+
+      .panel {
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        box-shadow: none;
+        overflow: hidden;
+      }
+
+      #ops-panel {
+        overflow: visible;
+      }
+
+      .panel-head {
+        padding: 12px 14px;
+        border-bottom: none;
+      }
+
+      .panel-head.phone-head {
+        width: 320px;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 6px 0 10px;
+        text-align: center;
+      }
+
+      .panel-head.ops-toggle-head {
+        width: max-content;
+        margin: 0 auto;
+        padding: 2px 0 10px;
+        text-align: center;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 16px;
+        font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .phone-shell {
+        background: transparent;
+        padding: 12px;
+      }
+
+      .right-phones {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .right-phones.three-user-mode {
+        gap: 8px;
+      }
+
+      .right-phones.three-user-mode .composer {
+        display: none;
+      }
+
+      .phone-shell.compact {
+        padding: 6px 12px;
+      }
+
+      .phone {
+        margin: 0 auto;
+        width: 320px;
+        max-width: 100%;
+        height: 640px;
+        border: 6px solid var(--surface-3);
+        border-radius: 34px;
+        background: var(--surface-2);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .phone.compact {
+        height: 316px;
+      }
+
+      .phone-notch {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--bg);
+        z-index: 5;
+      }
+
+      .phone-top {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 6px;
+        padding: 12px 12px 10px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface-2);
+      }
+
+      .top-meta {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #a6afbe;
+        margin-top: 6px;
+      }
+
+      .top-icons {
+        letter-spacing: 0.02em;
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #f8fafc;
+      }
+
+      .chat-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #e5e7eb;
+      }
+
+      .chat-status {
+        font-size: 11px;
+        color: #94a3b8;
+      }
+
+      .chat {
+        flex: 1;
+        background: linear-gradient(180deg, var(--surface-3) 0%, var(--surface-1) 100%);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+      }
+
+      .composer {
+        padding: 8px 10px;
+        border-top: 1px solid var(--line);
+        background: var(--surface-3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .composer-input {
+        flex: 1;
+        border: 1px solid #333b49;
+        border-radius: 999px;
+        background: var(--surface-3);
+        color: #7c8799;
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      .composer-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid #3a4354;
+        background: var(--surface-4);
+        color: #d5d9e2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        padding: 0;
+      }
+
+      .composer-icon svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .bubble {
+        max-width: 78%;
+        border-radius: 18px;
+        border: none;
+        background: var(--surface-4);
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #e5e7eb;
+      }
+
+      .bubble.human {
+        margin-left: auto;
+        border-radius: 18px 18px 6px 18px;
+        background: #2563eb;
+        color: #eef2ff;
+      }
+
+      .bubble.agent {
+        margin-right: auto;
+        border-radius: 18px 18px 18px 6px;
+        background: var(--surface-4);
+      }
+
+      .bubble.approval {
+        background: var(--amber-soft);
+        color: #fde68a;
+      }
+
+      .bubble-image {
+        width: 100%;
+        max-width: 220px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .ops {
+        height: 640px;
+        background: var(--surface-2);
+        border-radius: 18px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+
+      .dot-atlas { background: #3b82f6; }
+      .dot-iris { background: #a855f7; }
+      .dot-pulse { background: #14b8a6; }
+      .dot-beacon { background: #f59e0b; }
+
+      .ops-lanes {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(170px, 1fr));
+        gap: 12px;
+        overflow-x: auto;
+        padding: 2px 2px 6px;
+      }
+
+      .lane {
+        min-height: 0;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+
+      .lane-head {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 4px 4px;
+        border-bottom: none;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      .lane-feed {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 6px;
+      }
+
+      .lane-empty {
+        color: #64748b;
+        font-size: 12px;
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      .event {
+        border: none;
+        border-radius: 10px;
+        padding: 8px;
+        background: var(--surface-3);
+      }
+
+      .event-meta {
+        margin-top: 6px;
+        font-size: 11px;
+        color: #a1a1aa;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .chip {
+        background: var(--chip);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+
+      .chip.a2a { background: #1e1b4b; color: #c7d2fe; }
+      .chip.approval { background: #451a03; color: #fcd34d; }
+      .chip.complete { background: #052e16; color: #86efac; }
+
+      .event-text {
+        font-size: 14px;
+        color: #d1d5db;
+        line-height: 1.35;
+      }
+
+      .empty {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+
+      @media (max-width: 1200px) {
+        .layout { grid-template-columns: 1fr; }
+        .ops-lanes { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <section class="header">
+        <div class="header-row">
+          <div class="title-wrap">
+            <h1 class="title">Agent-to-Agent Experience Prototype</h1>
+            <div class="scenario-row">
+              <select id="scenario-select" class="scenario-select">
+                <option value="coffee">Simple: Coffee Coordination with Friend</option>
+                <option value="dinner">Complex: 3-User Dinner Coordination</option>
+                <option value="surprise">Discreet: Engagement Ring Planning</option>
+              </select>
+              <button id="play-btn" class="primary">Play</button>
+            </div>
+          </div>
+          <div class="controls"></div>
+        </div>
+      </section>
+
+      <section class="layout" id="layout-grid">
+        <article class="panel">
+          <div class="panel-head phone-head"><h2 class="panel-title">Lena + Atlas</h2></div>
+          <div class="phone-shell">
+            <div class="phone">
+              <div class="phone-notch"></div>
+              <div class="phone-top">
+                <div class="top-meta"><span>9:41</span><span class="top-icons">LTE ▮▮▮</span></div>
+                <div class="avatar">A</div>
+                <div><div class="chat-name">Atlas</div><div class="chat-status">Personal assistant • active now</div></div>
+              </div>
+              <div class="chat" id="phone-a-chat"></div>
+              <div class="composer">
+                <button class="composer-icon">+</button>
+                <div class="composer-input">iMessage</div>
+                <button class="composer-icon" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12"></path><path d="M13 6l6 6-6 6"></path></svg></button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel" id="ops-panel">
+          <div class="panel-head ops-toggle-head"><button id="toggle-ops-btn">Agent Coordination</button></div>
+          <div class="ops" id="ops-content"><div class="ops-lanes" id="ops-lanes"></div></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head phone-head"><h2 class="panel-title">Noah + Iris</h2></div>
+          <div class="right-phones" id="right-phones">
+            <div class="phone-shell" id="phone-b-shell">
+              <div class="phone" id="phone-b-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-top">
+                  <div class="top-meta"><span>9:41</span><span class="top-icons">LTE ▮▮▮</span></div>
+                  <div class="avatar">I</div>
+                  <div><div class="chat-name">Iris</div><div class="chat-status">Personal assistant • active now</div></div>
+                </div>
+                <div class="chat" id="phone-b-chat"></div>
+                <div class="composer">
+                  <button class="composer-icon">+</button>
+                  <div class="composer-input">iMessage</div>
+                  <button class="composer-icon" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12"></path><path d="M13 6l6 6-6 6"></path></svg></button>
+                </div>
+              </div>
+            </div>
+            <div class="phone-shell compact" id="phone-c-shell" style="display:none;">
+              <div class="phone compact">
+                <div class="phone-top">
+                  <div class="top-meta"><span>9:41</span><span class="top-icons">LTE ▮▮▮</span></div>
+                  <div class="avatar">P</div>
+                  <div><div class="chat-name">Pulse</div><div class="chat-status">Personal assistant • active now</div></div>
+                </div>
+                <div class="chat" id="phone-c-chat"></div>
+                <div class="composer">
+                  <button class="composer-icon">+</button>
+                  <div class="composer-input">iMessage</div>
+                  <button class="composer-icon" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12"></path><path d="M13 6l6 6-6 6"></path></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <script>
+      const scenarios = {
+        coffee: {
+          events: [
+            { id: "r1", at: 1000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Can you coordinate coffee with Noah this week?" },
+            { id: "r2", at: 2200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Absolutely. I will coordinate with Iris and bring back the best slot." },
+            { id: "r3", at: 3400, channel: "ops", kind: "background_task", actor: "Atlas", text: "Collecting Lena's free windows and preferred neighborhoods.", tag: "Task" },
+            { id: "r4", at: 4700, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Can Noah do Thursday 8:30 AM or Friday 10:00 AM for coffee?", tag: "A2A" },
+            { id: "r5", at: 6000, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "Lena is free Thursday 8:30 or Friday 10:00 for coffee. Which works better for you?" },
+            { id: "r6", at: 7300, channel: "phoneB", kind: "human_message", actor: "Noah", text: "Thursday 8:30 works for me." },
+            { id: "r7", at: 8600, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah picked Thursday 8:30 AM.", tag: "A2A" },
+            { id: "r8", at: 9800, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "From Lena's saved preferences: she likes cozy cafes with good pastries and low noise.", tag: "A2A" },
+            { id: "r9", at: 11100, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah's preferences show matcha and specialty pour-over interest. He also avoids crowded chains.", tag: "A2A" },
+            { id: "r10", at: 12400, channel: "ops", kind: "background_task", actor: "Atlas", text: "Combining both preference signals with wait time, travel time, and seating reliability.", tag: "Task" },
+            { id: "r11", at: 13700, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Noah chose Thursday 8:30. Based on both of your preferences, Groundline Coffee fits best. Should I lock it in?" },
+            { id: "r12", at: 15000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Yes, lock it in." },
+            { id: "r13", at: 16200, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Confirmed by Lena. Finalizing calendar blocks and venue notes.", tag: "A2A" },
+            { id: "r14", at: 17400, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Done. Coffee is set for Thursday 8:30 at Groundline." },
+            { id: "r15", at: 18600, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "All set. Coffee with Lena is confirmed and on your calendar." }
+          ]
+        },
+        dinner: {
+          events: [
+            { id: "d1", at: 1000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Can you coordinate a dinner for me, Noah, and Mia this week?" },
+            { id: "d2", at: 2200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Yes. I will coordinate with the other assistants and send the best option." },
+            { id: "d3", at: 3500, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris/Pulse", text: "Requesting availability, budget range, and dietary constraints.", tag: "A2A" },
+            { id: "d4", at: 4800, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah can do Friday after 7 PM. Vegetarian preference.", tag: "A2A" },
+            { id: "d5", at: 5900, channel: "ops", kind: "agent_to_agent", actor: "Pulse -> Atlas", text: "Mia can do Friday after 7 PM. Budget target under $45.", tag: "A2A" },
+            { id: "d7", at: 7000, channel: "ops", kind: "background_task", actor: "Atlas", text: "Scoring options with travel-time fairness and menu constraints.", tag: "Task" },
+            { id: "d8", at: 8300, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "Group dinner option is Friday 7:30 PM in Midtown. Are you in?" },
+            { id: "d9", at: 9600, channel: "phoneB", kind: "human_message", actor: "Noah", text: "Yes, that works for me." },
+            { id: "d10", at: 10800, channel: "phoneC", kind: "agent_message", actor: "Pulse", text: "Dinner plan is Friday 7:30 PM in Midtown. Does that work for you?" },
+            { id: "d11", at: 12000, channel: "phoneC", kind: "human_message", actor: "Mia", text: "Yes, I can make that." },
+            { id: "d12", at: 13200, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Noah confirmed the Friday option.", tag: "A2A" },
+            { id: "d13", at: 14400, channel: "ops", kind: "agent_to_agent", actor: "Pulse -> Atlas", text: "Mia confirmed the Friday option.", tag: "A2A" },
+            { id: "d14", at: 15600, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Noah and Mia are both confirmed. Finalize Friday 7:30?" },
+            { id: "d15", at: 16800, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Finalize it." },
+            { id: "d16", at: 18000, channel: "ops", kind: "status", actor: "Atlas", text: "Dinner confirmed for Lena, Noah, and Mia. Logistics shared.", tag: "Complete" },
+            { id: "d17", at: 19200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Done. Dinner is booked and everyone has details." },
+            { id: "d18", at: 20400, channel: "phoneB", kind: "agent_message", actor: "Iris", text: "Confirmed. Dinner is on your calendar for Friday 7:30 PM." },
+            { id: "d19", at: 21600, channel: "phoneC", kind: "agent_message", actor: "Pulse", text: "You're all set. Dinner is confirmed and on your calendar." }
+          ]
+        },
+        surprise: {
+          events: [
+            { id: "s1", at: 1000, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Help me discreetly plan an engagement ring for Noah." },
+            { id: "s2", at: 2200, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "I can do that. I will coordinate privately and keep the process discreet." },
+            { id: "s3", at: 3500, channel: "ops", kind: "background_task", actor: "Atlas", text: "Opening confidential thread with secrecy safeguards.", tag: "Task" },
+            { id: "s4", at: 4700, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Requesting anonymized jewelry preference profile and size confidence.", tag: "A2A" },
+            { id: "s5", at: 6000, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Profile: classic solitaire leaning, white-gold preference, size confidence medium-high.", tag: "A2A" },
+            { id: "s8", at: 9700, channel: "ops", kind: "background_task", actor: "Atlas", text: "Matching ring inventory by style, delivery speed, and budget.", tag: "Task" },
+            { id: "s9", at: 10900, channel: "ops", kind: "agent_to_agent", actor: "Atlas -> Iris", text: "Candidate selected. Confirming fit-risk and exchange policy quality.", tag: "A2A" },
+            { id: "s10", at: 12100, channel: "ops", kind: "agent_to_agent", actor: "Iris -> Atlas", text: "Fit risk acceptable. Exchange policy strong. No ring-related outreach to Noah.", tag: "A2A" },
+            { id: "s11", at: 13300, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Here is the top ring option I found.", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='360' viewBox='0 0 560 360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23192034'/%3E%3Cstop offset='1' stop-color='%233b2a59'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='560' height='360' rx='28' fill='url(%23g)'/%3E%3Cellipse cx='280' cy='265' rx='130' ry='34' fill='%23000000' opacity='0.25'/%3E%3Cpath d='M190 228c0 45 40 82 90 82s90-37 90-82' stroke='%23d8dbe7' stroke-width='20' fill='none'/%3E%3Cpath d='M220 115l60-58 60 58-20 56h-80z' fill='%23e7ecff' opacity='0.98'/%3E%3Cpath d='M280 58v113M220 115h120M246 87l34 84M314 87l-34 84' stroke='%23b7c0df' stroke-width='5' opacity='0.7'/%3E%3Ctext x='280' y='332' text-anchor='middle' fill='%23e8eaf6' font-size='22' font-family='Arial,sans-serif'%3ERound%20solitaire%20-%20White%20gold%3C/text%3E%3C/svg%3E" },
+            { id: "s12", at: 14500, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Top option is ready at $4,800 with 48-hour delivery. Want me to place a private hold?" },
+            { id: "s13", at: 15700, channel: "phoneA", kind: "human_message", actor: "Lena", text: "Yes, place the hold." },
+            { id: "s14", at: 16900, channel: "ops", kind: "status", actor: "Atlas", text: "Ring hold confirmed. Delivery and receipts routed in private mode.", tag: "Complete" },
+            { id: "s15", at: 18100, channel: "phoneA", kind: "agent_message", actor: "Atlas", text: "Done. The ring is secured and Noah has not been notified." }
+          ]
+        }
+      };
+
+      const state = { scenarioId: "coffee", elapsedMs: 0, playing: false, speed: 0.75, runtimeEvents: [], activeLanes: [], opsOpen: false };
+      const TIMING_CONFIG = { scale: 1.35, minGapMs: 1200 };
+
+      const dom = {
+        layoutGrid: document.getElementById("layout-grid"),
+        opsPanel: document.getElementById("ops-panel"),
+        opsContent: document.getElementById("ops-content"),
+        scenarioSelect: document.getElementById("scenario-select"),
+        toggleOpsBtn: document.getElementById("toggle-ops-btn"),
+        playBtn: document.getElementById("play-btn"),
+        rightPhones: document.getElementById("right-phones"),
+        phoneBShell: document.getElementById("phone-b-shell"),
+        phoneBFrame: document.getElementById("phone-b-frame"),
+        phoneCShell: document.getElementById("phone-c-shell"),
+        phoneAChat: document.getElementById("phone-a-chat"),
+        phoneBChat: document.getElementById("phone-b-chat"),
+        phoneCChat: document.getElementById("phone-c-chat"),
+        opsLanes: document.getElementById("ops-lanes")
+      };
+
+      const LANE_META = {
+        atlas: { label: "Atlas", dotClass: "dot-atlas" },
+        iris: { label: "Iris", dotClass: "dot-iris" },
+        pulse: { label: "Pulse", dotClass: "dot-pulse" },
+        beacon: { label: "Beacon", dotClass: "dot-beacon" }
+      };
+
+      function laneForEvent(event) {
+        const actor = event.actor || "";
+        const sender = actor.includes("->") ? actor.split("->")[0].trim() : actor;
+        if (sender.includes("Atlas")) return "atlas";
+        if (sender.includes("Iris")) return "iris";
+        if (sender.includes("Pulse")) return "pulse";
+        if (sender.includes("Beacon")) return "beacon";
+        return "atlas";
+      }
+
+      function laneNode(k) { return document.getElementById("lane-" + k); }
+
+      function relevantLanesForScenario() {
+        const detected = new Set();
+        currentScenario().events.filter(e => e.channel === "ops").forEach(e => detected.add(laneForEvent(e)));
+        const lanes = ["atlas","iris","pulse","beacon"].filter(l => detected.has(l));
+        return lanes.length > 0 ? lanes : ["atlas"];
+      }
+
+      function renderOpsScaffold() {
+        dom.opsLanes.innerHTML = "";
+        const lanes = state.activeLanes;
+        const isDinner = state.scenarioId === "dinner";
+        dom.opsLanes.style.gridTemplateColumns = "repeat(" + lanes.length + ", minmax(" + (isDinner ? 140 : 170) + "px, 1fr))";
+        dom.opsLanes.style.overflowX = isDinner ? "hidden" : "auto";
+        for (const k of lanes) {
+          const meta = LANE_META[k];
+          const lane = document.createElement("div");
+          lane.className = "lane";
+          lane.innerHTML = '<div class="lane-head"><span class="legend-dot ' + meta.dotClass + '"></span>' + meta.label + '</div><div class="lane-feed" id="lane-' + k + '"></div>';
+          dom.opsLanes.appendChild(lane);
+        }
+      }
+
+      function currentScenario() { return scenarios[state.scenarioId]; }
+
+      function resetScenario() {
+        const sorted = currentScenario().events.map(e => ({...e})).sort((a,b) => a.at - b.at);
+        let prev = 0;
+        state.runtimeEvents = sorted.map((e, i) => {
+          const scaled = Math.round(e.at * TIMING_CONFIG.scale);
+          const at = i === 0 ? scaled : Math.max(scaled, prev + TIMING_CONFIG.minGapMs);
+          prev = at;
+          return {...e, at};
+        });
+        state.activeLanes = relevantLanesForScenario();
+        state.elapsedMs = 0;
+        state.playing = false;
+        renderOpsScaffold();
+        render();
+      }
+
+      function visibleEvents() { return state.runtimeEvents.filter(e => e.at <= state.elapsedMs).sort((a,b) => a.at - b.at); }
+      function totalEnd() { return Math.max(...state.runtimeEvents.map(e => e.at)) + 1000; }
+
+      function chipClass(tag) {
+        if (tag === "A2A") return "chip a2a";
+        if (tag === "Approval") return "chip approval";
+        if (tag === "Complete") return "chip complete";
+        return "chip";
+      }
+
+      function renderPhone(node, events) {
+        node.innerHTML = "";
+        if (!events.length) { const p = document.createElement("p"); p.className = "empty"; p.textContent = "No messages yet."; node.appendChild(p); return; }
+        for (const e of events) {
+          const b = document.createElement("div");
+          b.className = "bubble " + (e.kind === "human_message" ? "human" : "agent") + (e.kind === "approval_request" ? " approval" : "");
+          if (e.image) { const img = document.createElement("img"); img.className = "bubble-image"; img.src = e.image; img.alt = ""; b.appendChild(img); }
+          const t = document.createElement("div"); t.textContent = e.text; b.appendChild(t);
+          node.appendChild(b);
+        }
+        node.scrollTop = node.scrollHeight;
+      }
+
+      function renderOps(events) {
+        state.activeLanes.forEach(k => { const n = laneNode(k); if (n) n.innerHTML = ""; });
+        if (!events.length) {
+          state.activeLanes.forEach(k => { const p = document.createElement("p"); p.className = "lane-empty"; p.textContent = "No activity yet"; const n = laneNode(k); if (n) n.appendChild(p); });
+          return;
+        }
+        for (const e of events) {
+          const item = document.createElement("div"); item.className = "event";
+          const txt = document.createElement("div"); txt.className = "event-text"; txt.textContent = e.text; item.appendChild(txt);
+          const meta = document.createElement("div"); meta.className = "event-meta"; meta.textContent = e.actor + " · ";
+          const chip = document.createElement("span"); chip.className = chipClass(e.tag || "Task"); chip.textContent = e.tag || "Task"; meta.appendChild(chip); item.appendChild(meta);
+          const tl = laneForEvent(e);
+          if (state.activeLanes.includes(tl)) { const n = laneNode(tl); if (n) n.appendChild(item); }
+        }
+        state.activeLanes.forEach(k => { const n = laneNode(k); if (n) n.scrollTop = n.scrollHeight; });
+      }
+
+      function render() {
+        const events = visibleEvents();
+        const isDinner = state.scenarioId === "dinner";
+        renderPhone(dom.phoneAChat, events.filter(e => e.channel === "phoneA"));
+        renderPhone(dom.phoneBChat, events.filter(e => e.channel === "phoneB"));
+        renderPhone(dom.phoneCChat, events.filter(e => e.channel === "phoneC"));
+        dom.phoneCShell.style.display = isDinner ? "block" : "none";
+        dom.phoneBShell.classList.toggle("compact", isDinner);
+        dom.phoneBFrame.classList.toggle("compact", isDinner);
+        dom.rightPhones.classList.toggle("three-user-mode", isDinner);
+        if (state.opsOpen) renderOps(events.filter(e => e.channel === "ops"));
+        dom.opsContent.style.display = state.opsOpen ? "flex" : "none";
+        dom.layoutGrid.style.gridTemplateColumns = state.opsOpen ? (isDinner ? "minmax(0, 0.9fr) minmax(0, 1.45fr) minmax(0, 0.9fr)" : "minmax(0, 1fr) minmax(0, 1.08fr) minmax(0, 1fr)") : "auto auto auto";
+        dom.layoutGrid.style.justifyContent = state.opsOpen ? "stretch" : "center";
+        dom.layoutGrid.style.gap = state.opsOpen ? "0px" : "20px";
+        dom.toggleOpsBtn.textContent = state.opsOpen ? "Hide Agent Coordination" : "Agent Coordination";
+        dom.playBtn.textContent = state.playing ? "Pause" : "Play";
+      }
+
+      dom.scenarioSelect.addEventListener("change", e => { state.scenarioId = e.target.value; resetScenario(); });
+      dom.toggleOpsBtn.addEventListener("click", () => { state.opsOpen = !state.opsOpen; render(); });
+      dom.playBtn.addEventListener("click", () => { state.playing = !state.playing; render(); });
+      setInterval(() => { if (!state.playing) return; state.elapsedMs += 100 * state.speed; if (state.elapsedMs >= totalEnd()) state.playing = false; render(); }, 100);
+      resetScenario();
+    <\/script>
+  </body>
+</html>`;
+
+  const PROTO_URL = '../ai-first-comms-share-package/case-study-deck/ai-native-communication-case-study.html#4';
+
+  function openProto(e) {
+    e.preventDefault();
+    const frame = document.getElementById('protoFrame');
+    if (frame.getAttribute('src') !== PROTO_URL) frame.setAttribute('src', PROTO_URL);
+    document.getElementById('protoOverlay').classList.add('open');
+  }
+
+  function closeProto() {
+    document.getElementById('protoOverlay').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeProto();
+  });
+</script>
+
+</body>
+</html>

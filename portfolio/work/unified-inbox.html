@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unified Inbox — Ji Seo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Inter+Tight:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Manrope:wght@300;400;500;600&family=Instrument+Serif:ital,wght@0,400;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <style>
+    .research-grid { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 640px) { .research-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-screen-label="02 Unified Inbox">
+
+  <header class="site-nav">
+    <a class="logo" href="../index.html">Ji Seo <em>—</em> Product Designer</a>
+    <ul>
+      <li><a href="../index.html">Work</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../contact.html">Contact</a></li>
+      <li><a class="resume-btn" href="../assets/Ji_Seo_resume_2026.pdf" download>Résumé ↓</a></li>
+    </ul>
+  </header>
+  <div class="progress-bar"></div>
+
+  <main class="case-wrap">
+
+    <section class="case-hero">
+      <div class="crumbs"><a href="../index.html">Work</a> / Unified Inbox</div>
+      <div class="hero-eyebrow">
+        <span class="chip accent">Shipped</span>
+        <span class="chip">Meta · Wearables · Communications</span>
+        <span class="chip">2025</span>
+      </div>
+      <h1>Breaking Apart<br>the <em>Unified Inbox</em></h1>
+      <p class="lede">
+        A legacy design had survived long past its technical constraints.
+        I proposed and drove the structural separation of Meta's wearable messaging experience
+        into distinct, purposeful apps — and sold it across engineering and leadership.
+      </p>
+      <div class="case-meta">
+        <div class="item"><div class="k">Role</div><div class="v">Senior Designer</div></div>
+        <div class="item"><div class="k">Team</div><div class="v">Comms / Messaging</div></div>
+        <div class="item"><div class="k">Collaborators</div><div class="v">PM + Researcher</div></div>
+        <div class="item"><div class="k">Status</div><div class="v">✦ Shipped</div></div>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <!-- CONTEXT -->
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">01</span><span class="section-label">Context</span></div>
+      <h2>A unified inbox built for <em>constraints that no longer existed</em></h2>
+      <div class="body">
+        <p>When I joined the team, the wearables messaging experience lived in a single unified inbox — one view that collapsed WhatsApp, Messenger, and other native messaging apps into a common thread list with no differentiation.</p>
+        <p>The original rationale was technical: early devices made separate navigation difficult, so a unified view was the pragmatic solution. But by the time I arrived, those constraints had long been resolved. What remained was a design that had outlived its reason for existing — kept alive by institutional familiarity and justifications that had built up around it over time.</p>
+      </div>
+      <img src="../images/before.png" alt="Before-state — unified inbox view" style="width: 100%; display: block; margin-top: 36px;" />
+    </section>
+
+    <div class="case-divider"></div>
+
+    <!-- PROBLEM -->
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">02</span><span class="section-label">Problem</span></div>
+      <h2>People think of each messaging app as a <em>distinct entity</em> — with its own purpose and social norms</h2>
+      <div class="body">
+        <p>People today regularly use 5+ messaging apps. Each one carries a distinct social context: WhatsApp for family and close friends, Messenger for a different social graph, each with its own norms around what gets sent, to whom, and when.</p>
+        <p>Collapsing those into a single inbox simplified navigation on the surface, but it created a higher cognitive burden. Users weren't just navigating messages — they were constantly re-orienting to which context they were in.</p>
+      </div>
+
+      <div class="case-callout">
+        <p>"Navigation may be easier but cognitive load is higher. People actually think of each app as a separate entity with separate and different use cases."</p>
+      </div>
+
+      <div class="body">
+        <p>Without a proper notification center, the unified inbox had also been serving as a workaround for awareness — a place to surface incoming messages from multiple platforms. But awareness and unified messaging are different needs. The design had conflated them.</p>
+      </div>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <!-- RESEARCH -->
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">03</span><span class="section-label">Research</span></div>
+      <h2>What participants <em>actually told us</em></h2>
+      <div class="body">
+        <p>Working closely with our researcher, we conducted user studies alongside a literature review of existing findings. The data consistently validated the hypothesis: separation wasn't just acceptable — it was expected.</p>
+      </div>
+
+      <div class="research-grid">
+        <div class="research-card">
+          <div class="num">01</div>
+          <h4>Separate by social purpose</h4>
+          <p>Participants use each platform for different purposes. Consolidation was wanted for <em>awareness</em> — not unified messaging across apps.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">02</div>
+          <h4>Mixed threads create confusion</h4>
+          <p>Combining conversations from different platforms into one thread created a disjointed narrative — making it harder, not easier, to follow a conversation.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">03</div>
+          <h4>Tabs implied separation</h4>
+          <p>When shown concepts with platform tabs, all participants perceived the accounts as separate — even when they shared a consolidated Meta view.</p>
+        </div>
+        <div class="research-card">
+          <div class="num">04</div>
+          <h4>No privacy concerns with separation</h4>
+          <p>Because separation was the expected mental model, no participants flagged privacy concerns — they already assumed accounts were distinct.</p>
+        </div>
+      </div>
+
+      <img src="../images/research.png" alt="Research artifact" style="width: 100%; display: block; margin-top: 48px;" />
+    </section>
+
+    <div class="case-divider"></div>
+
+    <!-- APPROACH -->
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">04</span><span class="section-label">My Approach</span></div>
+      <h2>Selling a structural change that <em>wasn't on anyone's roadmap</em></h2>
+      <div class="body">
+        <p>Breaking apart the unified inbox required buy-in across design, product, and engineering — and none of it was easy. This wasn't a feature request; it was a structural proposal that touched every platform team.</p>
+      </div>
+
+      <div class="approach-list">
+        <div class="approach-step">
+          <div class="n">1</div>
+          <div>
+            <h4>Made the legacy visible</h4>
+            <p>I reframed the unified inbox not as an intentional design decision, but as a technical workaround that had outlived its context — shifting the conversation from "why change" to "why not."</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">2</div>
+          <div>
+            <h4>Grounded every claim in research</h4>
+            <p>Rather than advocating from intuition, I brought user data to every conversation. Participant findings plus a literature review created a strong, evidence-based case for separation.</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">3</div>
+          <div>
+            <h4>Built design proposals to make it concrete</h4>
+            <p>I developed tangible proposals showing how separated apps could work in practice — giving engineering teams something specific to react to rather than a conceptual argument.</p>
+          </div>
+        </div>
+        <div class="approach-step">
+          <div class="n">4</div>
+          <div>
+            <h4>Paired separation with a notification center</h4>
+            <p>One key objection was awareness: the unified inbox helped people see all messages in one place. I proposed a dedicated notification center as the answer — consolidation for awareness, separation for action.</p>
+          </div>
+        </div>
+      </div>
+
+      <img src="../images/chart.png" alt="Structural change proposal" style="width: 100%; display: block; margin-top: var(--space-3);" />
+      <img src="../images/comparison.png" alt="Comparison of unified inbox vs separated apps" style="width: 100%; display: block; margin-top: var(--space-3);" />
+    </section>
+
+    <div class="case-divider"></div>
+
+    <!-- SOLUTION -->
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">05</span><span class="section-label">Solution</span></div>
+      <h2>Distinct apps. One notification center. <em>Clarity at every layer.</em></h2>
+      <div class="body">
+        <p>The resulting design separated WhatsApp, Messenger, and other native apps into their own distinct experiences — each with its own identity, purpose, and navigation on the device.</p>
+        <p>A new notification center addressed the awareness need that the unified inbox had been fulfilling as a side effect. Users could now see incoming messages across platforms in one place, without having all their conversations collapsed into a single context.</p>
+        <p>The recommendation also surfaced a path forward for consolidation without combination — stacking messages from one person across platforms while preserving app-level icons and context, so users could orient without cognitive overhead.</p>
+      </div>
+
+      <video src="../images/Final_proto.mov" loop muted playsinline data-scroll-play style="width: 100%; display: block; margin-top: 36px; border-radius: var(--radius);"></video>
+    </section>
+
+    <div class="case-divider"></div>
+
+    <!-- OUTCOME -->
+    <section class="case-section">
+      <div class="section-header"><span class="section-num">06</span><span class="section-label">Outcome</span></div>
+      <h2>Shipped. And the foundation of <em>my plan of record.</em></h2>
+      <div class="body">
+        <p>The proposal gained cross-functional alignment, became my plan of record, and shipped. A structural change to the messaging architecture — driven by a new designer through research and design — made it into the product.</p>
+      </div>
+
+      <div class="outcome-row">
+        <div class="outcome-card">
+          <div class="tag">Impact</div>
+          <div class="v green">Shipped</div>
+        </div>
+        <div class="outcome-card">
+          <div class="tag">Scope</div>
+          <div class="v">Platform-level restructure</div>
+        </div>
+        <div class="outcome-card">
+          <div class="tag">Influence</div>
+          <div class="v">Became plan of record</div>
+        </div>
+        <div class="outcome-card">
+          <div class="tag">New capability</div>
+          <div class="v">Notification center</div>
+        </div>
+      </div>
+
+      <div class="case-callout" style="margin-top: var(--space-4);">
+        <p>"The hardest design challenge isn't the interface — it's convincing an organization to change course. This project required making the invisible visible: showing that a design which had accumulated years of justification was still just a workaround."</p>
+      </div>
+    </section>
+
+    <nav class="case-nav">
+      <a href="ai-native-communications.html">
+        <div class="k">Previous</div>
+        <div class="t">← AI-Native Communications</div>
+      </a>
+      <a class="next" href="marcel.html">
+        <div class="k">Next</div>
+        <div class="t">Marcel →</div>
+      </a>
+    </nav>
+
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Get in touch</h4>
+        <p class="big">Let&rsquo;s <em>talk</em>.</p>
+        <p style="color: var(--ink-muted); max-width: 360px; font-size: 14px;">
+          Currently open to new work and collaboration.<br/>
+          Always happy to chat about design and technology.
+        </p>
+      </div>
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="../index.html">Work</a></li>
+          <li><a href="../about.html">About</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Elsewhere</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/jiseo/" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Reach</h4>
+        <ul>
+          <li><a href="mailto:jiseo@gmail.com">jiseo@gmail.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copy">
+      <span>© 2026 Ji Seo · All things beautiful</span>
+      <span>Made in New York</span>
+    </div>
+  </footer>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
